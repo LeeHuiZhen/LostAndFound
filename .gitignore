@@ -1,0 +1,12 @@
+# Sensitive Configuration
+config.php
+
+# Uploads and temporary data
+uploads/
+/uploads/*
+
+# System/Editor files
+.vscode/
+.idea/
+.DS_Store
+*.bak
