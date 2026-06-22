@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $_SESSION["user_name"] = $name;
                         $_SESSION["user_email"] = $email_db;
                         
-                        header("location: ../lee/report_lost.php");
+                        header("location: ../lee/index.php");
                         exit;
                     } else {
                         $error = "Invalid password.";
