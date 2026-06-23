@@ -20,7 +20,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 <body>
     <h2>Report Found Item</h2>
     <form action="save_report.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="type" value="lost">
+        <input type="hidden" name="type" value="found">
         <div class="form-group">
             <label>Item Name:</label>
             <input type="text" name="item_name" required>
