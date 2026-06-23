@@ -1,6 +1,11 @@
 <?php
 session_start();
-$_SESSION["loggedin"] = true;
+
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    header("Location: ../index.php");
+    exit;
+}
+
 require_once '../config.php';
 
 $error = '';
@@ -10,32 +15,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     if (!empty($email) && !empty($password)) {
-        $sql = "SELECT id, name, email, password FROM users WHERE email = ?";
+        $sql = "SELECT id, name, password FROM users WHERE email = ?";
+        
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("s", $param_email);
-            $param_email = $email;
-            
-            if ($stmt->execute()) {
-                $stmt->store_result();
-                if ($stmt->num_rows == 1) {
-                    $stmt->bind_result($id, $name, $email_db, $hashed_password);
-                    $stmt->fetch();
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows == 1) {
+                $stmt->bind_result($id, $name, $hashed_password);
+                $stmt->fetch();
+
+                if (password_verify($password, $hashed_password)) {
+                    $_SESSION["loggedin"] = true;
+                    $_SESSION["user_id"] = $id;
+                    $_SESSION["user_name"] = $name;
                     
-                    if (password_verify($password, $hashed_password)) {
-                        session_start();
-                        $_SESSION["loggedin"] = true;
-                        $_SESSION["user_id"] = $id;
-                        $_SESSION["user_name"] = $name;
-                        $_SESSION["user_email"] = $email_db;
-                        
-                        header("location: ../index.php");
-                        exit;
-                    } else {
-                        $error = "Invalid password.";
-                    }
+                    header("Location: ../index.php");
+                    exit;
                 } else {
-                    $error = "No account found with that email.";
+                    $error = "Invalid password.";
                 }
+            } else {
+                $error = "No account found with that email.";
             }
             $stmt->close();
         }
