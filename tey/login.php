@@ -1,5 +1,6 @@
 <?php
 session_start();
+$_SESSION["loggedin"] = true;
 require_once '../config.php';
 
 $error = '';
