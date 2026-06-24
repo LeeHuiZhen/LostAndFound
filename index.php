@@ -39,7 +39,7 @@ require_once __DIR__ . '/config.php';
         <?php if (isset($_SESSION['user_id'])): ?>
             <div class="user-info">
                 Welcome, <?php echo htmlspecialchars($_SESSION['name'] ?? 'User'); ?>!
-                <a href="/tey/login/logout.php">Logout</a>
+                <a href="/tey/logout.php">Logout</a>
             </div>
         <?php endif; ?>
     </div>
@@ -49,16 +49,16 @@ require_once __DIR__ . '/config.php';
             <div class="icon">🔐</div>
             <h3>Login / Register</h3>
             <p>Create an account or login to access the system</p>
-            <a href="/tey/login/login.php" class="btn btn-login">Login</a>
-            <a href="/tey/login/register.php" class="btn">Register</a>
+            <a href="/tey/login.php" class="btn btn-login">Login</a>
+            <a href="/tey/register.php" class="btn">Register</a>
         </div>
 
         <div class="card">
             <div class="icon">📝</div>
             <h3>Report Item</h3>
             <p>Report a lost or found item on campus</p>
-            <a href="/lee/report/report_lost.php" class="btn">Report Lost</a>
-            <a href="/lee/report/report_found.php" class="btn btn-login">Report Found</a>
+            <a href="/lee/report_lost.php" class="btn">Report Lost</a>
+            <a href="/lee/report_found.php" class="btn btn-login">Report Found</a>
         </div>
 
         <div class="card">
@@ -72,14 +72,10 @@ require_once __DIR__ . '/config.php';
             <div class="icon">📋</div>
             <h3>Claim Verification</h3>
             <p>Submit a claim for a matched item</p>
-            <a href="/tan/claim/claim_status.php" class="btn btn-claim">My Claims</a>
-            <a href="/tan/claim/verify_claim.php" class="btn">Admin</a>
+            <a href="/tan/claim_status.php" class="btn btn-claim">My Claims</a>
+            <a href="/tan/verify_claim.php" class="btn">Admin</a>
         </div>
     </div>
 
-    <div class="footer">
-        <p>Lost and Found Assistant &copy; 2026 | Group WP Project</p>
-        <p>Sub-paths: tey/login | lee/report | syafiqah/matching | tan/claim</p>
-    </div>
 </body>
 </html>
