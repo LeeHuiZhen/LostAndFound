@@ -1,22 +1,9 @@
 <?php
-// Get the correct path to config.php
-$config_path = __DIR__ . '/../config.php';
-if (file_exists($config_path)) {
-    require_once $config_path;
-} else {
-    die("ERROR: config.php not found at: " . $config_path);
-}
-
-if (!isset($conn) || $conn->connect_error) {
-    die("ERROR: Database connection failed.");
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+include '../config.php';
+session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /tey/login/login.php");
+    header("Location: /tey/login.php");
     exit();
 }
 
