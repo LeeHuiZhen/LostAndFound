@@ -1,13 +1,10 @@
 <?php
+include '../config.php';
 session_start();
-include '../../config.php';
 
-// Simple admin check - you can set this manually or create an admin login
-// For now, we'll use a simple password check or allow specific user
 $is_admin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
-$admin_password = 'admin123'; // Change this to your desired admin password
+$admin_password = 'admin123';
 
-// Check if admin is logging in
 if (isset($_POST['admin_login'])) {
     $password = $_POST['admin_password'];
     if ($password === $admin_password) {
@@ -18,13 +15,11 @@ if (isset($_POST['admin_login'])) {
     }
 }
 
-// Logout admin
 if (isset($_GET['logout'])) {
     unset($_SESSION['is_admin']);
     $is_admin = false;
 }
 
-// Handle verification actions
 if ($is_admin && isset($_GET['claim_id']) && isset($_GET['action'])) {
     $claim_id = intval($_GET['claim_id']);
     $action = $_GET['action'];
@@ -42,11 +37,8 @@ if ($is_admin && isset($_GET['claim_id']) && isset($_GET['action'])) {
     }
 
     if (!empty($status)) {
-        // Update claim status
         $sql = "UPDATE claims SET status = '$status' WHERE claim_id = $claim_id";
         $conn->query($sql);
-
-        // Also update the match status if returned
         if ($action == 'return') {
             $update_match = "UPDATE matches SET status = 'returned' WHERE match_id = 
                              (SELECT match_id FROM claims WHERE claim_id = $claim_id)";
@@ -55,7 +47,6 @@ if ($is_admin && isset($_GET['claim_id']) && isset($_GET['action'])) {
     }
 }
 
-// Get pending claims for admin
 $pending_sql = "SELECT c.*, u.name as owner_name, u.email as owner_email, u.phone, 
                        li.item_name as lost_item, fi.item_name as found_item, fi.photo_url
                 FROM claims c 
@@ -67,7 +58,6 @@ $pending_sql = "SELECT c.*, u.name as owner_name, u.email as owner_email, u.phon
                 ORDER BY c.created_at ASC";
 $pending_result = $conn->query($pending_sql);
 
-// Get all claims for overview
 $all_sql = "SELECT c.*, u.name as owner_name, 
                    li.item_name as lost_item, fi.item_name as found_item
             FROM claims c 
@@ -81,20 +71,15 @@ $all_result = $conn->query($all_sql);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Claim Verification</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 30px auto; padding: 20px; }
+        body { font-family: Arial; max-width: 1200px; margin: 30px auto; padding: 20px; }
         .header { background: #343a40; color: white; padding: 15px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
         .header a { color: #ffc107; }
         .container { background: #f9f9f9; padding: 20px; border-radius: 10px; margin-top: 20px; }
         .claim-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ffc107; }
-        .claim-card.verified { border-left-color: #28a745; }
-        .claim-card.rejected { border-left-color: #dc3545; }
-        .claim-card.returned { border-left-color: #17a2b8; }
         .claim-card img { max-width: 150px; border-radius: 5px; }
         .btn-group { margin-top: 15px; }
         .btn { padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px; }
@@ -104,8 +89,6 @@ $all_result = $conn->query($all_sql);
         .btn-reject:hover { background: #c82333; }
         .btn-return { background: #17a2b8; color: white; }
         .btn-return:hover { background: #138496; }
-        .btn-logout { background: #6c757d; color: white; }
-        .btn-logout:hover { background: #5a6268; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; }
         th { background: #343a40; color: white; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #ddd; }
@@ -115,12 +98,13 @@ $all_result = $conn->query($all_sql);
         .badge-rejected { background: #dc3545; color: #fff; }
         .badge-returned { background: #17a2b8; color: #fff; }
         .login-form { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .login-form input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; }
+        .login-form input[type="submit"] { background: #007bff; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <?php if (!$is_admin): ?>
-    <!-- Admin Login Form -->
     <div class="login-form">
         <h2>🔐 Admin Login</h2>
         <?php if (isset($error)): ?>
@@ -128,16 +112,15 @@ $all_result = $conn->query($all_sql);
         <?php endif; ?>
         <form method="POST">
             <label>Admin Password:</label>
-            <input type="password" name="admin_password" style="width: 100%; padding: 10px; margin: 10px 0;" required>
+            <input type="password" name="admin_password" required>
             <input type="hidden" name="admin_login" value="1">
-            <input type="submit" value="Login" style="background: #007bff; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer;">
+            <input type="submit" value="Login">
         </form>
         <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">Default password: <strong>admin123</strong></p>
     </div>
     <?php exit(); ?>
 <?php endif; ?>
 
-<!-- Admin Dashboard -->
 <div class="header">
     <h2>🔐 Admin Claim Verification Dashboard</h2>
     <div>
@@ -170,7 +153,6 @@ $all_result = $conn->query($all_sql);
                         </div>
                     <?php endif; ?>
                 </div>
-
                 <div class="btn-group">
                     <a href="verify_claim.php?claim_id=<?php echo $row['claim_id']; ?>&action=approve" class="btn btn-approve">✅ Approve</a>
                     <a href="verify_claim.php?claim_id=<?php echo $row['claim_id']; ?>&action=reject" class="btn btn-reject">❌ Reject</a>
@@ -187,14 +169,7 @@ $all_result = $conn->query($all_sql);
     <h2>📊 All Claims History</h2>
     <table>
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Owner</th>
-                <th>Lost Item</th>
-                <th>Found Item</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
+            <tr><th>ID</th><th>Owner</th><th>Lost Item</th><th>Found Item</th><th>Status</th><th>Date</th></tr>
         </thead>
         <tbody>
             <?php while($row = $all_result->fetch_assoc()): ?>
