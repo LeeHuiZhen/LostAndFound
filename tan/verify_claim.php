@@ -50,7 +50,7 @@ if ($is_admin && isset($_GET['claim_id']) && isset($_GET['action'])) {
 $pending_sql = "SELECT c.*, u.name as owner_name, u.email as owner_email, u.phone, 
                        li.item_name as lost_item, fi.item_name as found_item, fi.photo_url
                 FROM claims c 
-                JOIN users u ON c.owner_id = u.user_id
+                JOIN users u ON c.owner_id = u.id
                 JOIN matches m ON c.match_id = m.match_id
                 JOIN lost_items li ON m.lost_item_id = li.item_id
                 JOIN found_items fi ON m.found_item_id = fi.item_id
@@ -61,7 +61,7 @@ $pending_result = $conn->query($pending_sql);
 $all_sql = "SELECT c.*, u.name as owner_name, 
                    li.item_name as lost_item, fi.item_name as found_item
             FROM claims c 
-            JOIN users u ON c.owner_id = u.user_id
+            JOIN users u ON c.owner_id = u.id
             JOIN matches m ON c.match_id = m.match_id
             JOIN lost_items li ON m.lost_item_id = li.item_id
             JOIN found_items fi ON m.found_item_id = fi.item_id
