@@ -1,16 +1,27 @@
 <?php
-session_start();
-include '../../config.php';
+// Get the correct path to config.php
+$config_path = __DIR__ . '/../config.php';
+if (file_exists($config_path)) {
+    require_once $config_path;
+} else {
+    die("ERROR: config.php not found at: " . $config_path);
+}
 
-// Check if user is logged in
+if (!isset($conn) || $conn->connect_error) {
+    die("ERROR: Database connection failed.");
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../tey/login/login.php");
+    header("Location: /tey/login/login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 
-// Get all claims for this user
 $sql = "SELECT c.*, m.match_id, 
                li.item_name as lost_item, li.description as lost_desc,
                fi.item_name as found_item, fi.description as found_desc, fi.photo_url
@@ -24,90 +35,60 @@ $result = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Claims - Lost and Found Assistant</title>
+    <title>My Claims</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 50px auto; padding: 20px; }
-        .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial; background: #f4f7fc; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #007bff; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #ddd; }
         tr:hover { background: #f1f1f1; }
-        .status-pending { color: #ffc107; font-weight: bold; }
-        .status-verified { color: #28a745; font-weight: bold; }
-        .status-rejected { color: #dc3545; font-weight: bold; }
-        .status-returned { color: #17a2b8; font-weight: bold; }
-        .btn { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; }
-        .btn:hover { background: #5a6268; }
-        .proof-link { color: #007bff; text-decoration: none; }
-        .proof-link:hover { text-decoration: underline; }
-        .badge { padding: 3px 10px; border-radius: 15px; font-size: 12px; }
+        .badge { display: inline-block; padding: 3px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; }
         .badge-pending { background: #ffc107; color: #000; }
         .badge-verified { background: #28a745; color: #fff; }
         .badge-rejected { background: #dc3545; color: #fff; }
         .badge-returned { background: #17a2b8; color: #fff; }
+        .btn { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .btn:hover { background: #5a6268; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📋 My Claim Status</h1>
-
-        <?php if ($result->num_rows > 0): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Claim ID</th>
-                        <th>Lost Item</th>
-                        <th>Found Item</th>
-                        <th>Proof</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><strong><?php echo $row['claim_id']; ?></strong></td>
-                            <td><?php echo htmlspecialchars($row['lost_item']); ?></td>
-                            <td><?php echo htmlspecialchars($row['found_item']); ?></td>
-                            <td>
-                                <?php if ($row['proof_url']): ?>
-                                    <a href="<?php echo htmlspecialchars($row['proof_url']); ?>" target="_blank" class="proof-link">📎 View</a>
-                                <?php else: ?>
-                                    N/A
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php 
-                                $status = $row['status'];
-                                $badge_class = '';
-                                if ($status == 'pending') {
-                                    echo '<span class="badge badge-pending">⏳ Pending Review</span>';
-                                } elseif ($status == 'verified') {
-                                    echo '<span class="badge badge-verified">✅ Verified</span>';
-                                } elseif ($status == 'rejected') {
-                                    echo '<span class="badge badge-rejected">❌ Rejected</span>';
-                                } elseif ($status == 'returned') {
-                                    echo '<span class="badge badge-returned">🎉 Returned!</span>';
-                                }
-                                ?>
-                            </td>
-                            <td><?php echo date('d M Y, h:i A', strtotime($row['created_at'])); ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p style="text-align: center; padding: 40px; background: white; border-radius: 5px;">
-                You have not submitted any claims yet.
-            </p>
-        <?php endif; ?>
-
-        <br>
-        <a href="../../index.php" class="btn">⬅ Back to Home</a>
-    </div>
+<div class="container">
+    <h1>📋 My Claim Status</h1>
+    <?php if ($result && $result->num_rows > 0): ?>
+    <table>
+        <tr>
+            <th>Claim ID</th>
+            <th>Lost Item</th>
+            <th>Found Item</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+        <?php while($row = $result->fetch_assoc()): ?>
+        <tr>
+            <td><strong><?php echo $row['claim_id']; ?></strong></td>
+            <td><?php echo htmlspecialchars($row['lost_item']); ?></td>
+            <td><?php echo htmlspecialchars($row['found_item']); ?></td>
+            <td><?php 
+                $status = $row['status'];
+                if ($status == 'pending') echo '<span class="badge badge-pending">⏳ Pending</span>';
+                elseif ($status == 'verified') echo '<span class="badge badge-verified">✅ Verified</span>';
+                elseif ($status == 'rejected') echo '<span class="badge badge-rejected">❌ Rejected</span>';
+                elseif ($status == 'returned') echo '<span class="badge badge-returned">🎉 Returned</span>';
+            ?></td>
+            <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
+        </tr>
+        <?php endwhile; ?>
+    </table>
+    <?php else: ?>
+        <p style="text-align:center; padding:40px; color:#666;">You have not submitted any claims yet.</p>
+    <?php endif; ?>
+    <br>
+    <a href="/index.php" class="btn">⬅ Back to Home</a>
+</div>
 </body>
 </html>
