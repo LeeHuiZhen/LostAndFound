@@ -3,7 +3,7 @@ include '../config.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /tey/login/login.php");
+    header("Location: /tey/login.php");
     exit();
 }
 
