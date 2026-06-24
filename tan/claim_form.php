@@ -1,19 +1,6 @@
 <?php
-// Get the correct path to config.php
 include '../config.php';
-if (file_exists($config_path)) {
-    require_once $config_path;
-} else {
-    die("ERROR: config.php not found at: " . $config_path);
-}
-
-if (!isset($conn) || $conn->connect_error) {
-    die("ERROR: Database connection failed.");
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: /tey/login.php");
@@ -21,74 +8,72 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
 
-$sql = "SELECT c.*, m.match_id, 
-               li.item_name as lost_item, li.description as lost_desc,
+if ($match_id == 0) {
+    die("Invalid match ID.");
+}
+
+// Get match details
+$sql = "SELECT m.*, li.item_name as lost_item, li.description as lost_desc, 
                fi.item_name as found_item, fi.description as found_desc, fi.photo_url
-        FROM claims c 
-        JOIN matches m ON c.match_id = m.match_id
+        FROM matches m 
         JOIN lost_items li ON m.lost_item_id = li.item_id
         JOIN found_items fi ON m.found_item_id = fi.item_id
-        WHERE c.owner_id = $user_id
-        ORDER BY c.created_at DESC";
+        WHERE m.match_id = $match_id AND m.status = 'pending'";
 $result = $conn->query($sql);
+
+if ($result->num_rows == 0) {
+    die("Match not found or already claimed.");
+}
+
+$match = $result->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Claims</title>
+    <title>Claim Item</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: Arial; background: #f4f7fc; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-        h1 { color: #333; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #007bff; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #ddd; }
-        tr:hover { background: #f1f1f1; }
-        .badge { display: inline-block; padding: 3px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; }
-        .badge-pending { background: #ffc107; color: #000; }
-        .badge-verified { background: #28a745; color: #fff; }
-        .badge-rejected { background: #dc3545; color: #fff; }
-        .badge-returned { background: #17a2b8; color: #fff; }
-        .btn { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-        .btn:hover { background: #5a6268; }
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+        .item-details { background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .item-details img { max-width: 200px; border-radius: 5px; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        input[type="text"], textarea, input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        input[type="submit"] { background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        input[type="submit"]:hover { background: #218838; }
+        .btn-back { display: inline-block; background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px; }
+        .btn-back:hover { background: #5a6268; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>📋 My Claim Status</h1>
-    <?php if ($result && $result->num_rows > 0): ?>
-    <table>
-        <tr>
-            <th>Claim ID</th>
-            <th>Lost Item</th>
-            <th>Found Item</th>
-            <th>Status</th>
-            <th>Date</th>
-        </tr>
-        <?php while($row = $result->fetch_assoc()): ?>
-        <tr>
-            <td><strong><?php echo $row['claim_id']; ?></strong></td>
-            <td><?php echo htmlspecialchars($row['lost_item']); ?></td>
-            <td><?php echo htmlspecialchars($row['found_item']); ?></td>
-            <td><?php 
-                $status = $row['status'];
-                if ($status == 'pending') echo '<span class="badge badge-pending">⏳ Pending</span>';
-                elseif ($status == 'verified') echo '<span class="badge badge-verified">✅ Verified</span>';
-                elseif ($status == 'rejected') echo '<span class="badge badge-rejected">❌ Rejected</span>';
-                elseif ($status == 'returned') echo '<span class="badge badge-returned">🎉 Returned</span>';
-            ?></td>
-            <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
-    <?php else: ?>
-        <p style="text-align:center; padding:40px; color:#666;">You have not submitted any claims yet.</p>
-    <?php endif; ?>
+    <h1>📝 Claim Verification</h1>
+    <p>You are claiming an item. Please provide proof of ownership.</p>
+
+    <div class="item-details">
+        <h3>Item Details</h3>
+        <p><strong>Lost Item:</strong> <?php echo htmlspecialchars($match['lost_item']); ?></p>
+        <p><strong>Found Item:</strong> <?php echo htmlspecialchars($match['found_item']); ?></p>
+        <p><strong>Found Item Description:</strong> <?php echo htmlspecialchars($match['found_desc']); ?></p>
+        <?php if ($match['photo_url']): ?>
+            <img src="<?php echo htmlspecialchars($match['photo_url']); ?>" alt="Found item photo">
+        <?php endif; ?>
+    </div>
+
+    <form action="proof_upload.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="match_id" value="<?php echo $match_id; ?>">
+        <label for="proof_description">Describe your lost item (include unique features, color, brand, etc.):</label>
+        <textarea name="proof_description" id="proof_description" rows="4" required></textarea>
+        <label for="proof_file">Upload proof of ownership (receipt, photo, serial number, etc.):</label>
+        <input type="file" name="proof_file" id="proof_file" required>
+        <br>
+        <input type="submit" value="Submit Claim">
+    </form>
     <br>
-    <a href="/index.php" class="btn">⬅ Back to Home</a>
+    <a href="claim_status.php" class="btn-back">View My Claims</a>
+    <a href="/index.php" class="btn-back">Back to Home</a>
 </div>
 </body>
 </html>
