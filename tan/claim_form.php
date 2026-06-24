@@ -3,15 +3,38 @@ include '../config.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /tey/login.php");
+    header("Location: /tey/login/login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
 
+// If no match_id, show a friendly message instead of error
 if ($match_id == 0) {
-    die("Invalid match ID.");
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Claim Item</title>
+        <style>
+            body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px; }
+            .btn:hover { background: #0056b3; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📝 Claim an Item</h1>
+            <p>No match selected. Please go to your dashboard to view matches.</p>
+            <a href="claim_status.php" class="btn">View My Claims</a>
+            <a href="/index.php" class="btn">Back to Home</a>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit();
 }
 
 // Get match details
