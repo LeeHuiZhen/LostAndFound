@@ -21,23 +21,37 @@ require_once __DIR__ . '/config.php';
         /* ===== MODULE CARDS ===== */
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; flex: 1; }
         
-        .card { background: white; padding: 35px 25px 30px; border-radius: 20px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; }
+        .card { background: white; padding: 35px 25px 30px; border-radius: 20px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
         .card .icon { font-size: 50px; margin-bottom: 15px; display: inline-block; }
         .card:hover .icon { transform: scale(1.1); }
         .card h3 { font-size: 20px; color: #333; margin-bottom: 10px; }
-        .card p { color: #888; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .card p { color: #888; font-size: 14px; margin-bottom: 20px; line-height: 1.6; flex-grow: 1; }
         
-        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        /* ===== BUTTON GROUP ===== */
+        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+        
         .btn { display: inline-block; padding: 10px 22px; border-radius: 50px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.3s; border: 2px solid transparent; }
+        
+        /* ===== UNIFORM BUTTON WIDTH ===== */
+        .btn-uniform { 
+            min-width: 120px; 
+            text-align: center; 
+        }
+        
+        /* ===== BUTTON STYLES ===== */
         .btn-primary { background: #667eea; color: white; }
         .btn-primary:hover { background: #5a67d8; transform: scale(1.02); }
+        
         .btn-success { background: #28a745; color: white; }
         .btn-success:hover { background: #218838; transform: scale(1.02); }
+        
         .btn-teal { background: #17a2b8; color: white; }
         .btn-teal:hover { background: #138496; transform: scale(1.02); }
+        
         .btn-outline { background: transparent; color: #667eea; border-color: #667eea; }
         .btn-outline:hover { background: #667eea; color: white; }
+        
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; transform: scale(1.02); }
 
@@ -51,11 +65,12 @@ require_once __DIR__ . '/config.php';
             .header h1 { font-size: 28px; }
             .header p { font-size: 16px; }
             .container { grid-template-columns: 1fr; max-width: 400px; }
+            .btn-uniform { min-width: 100px; font-size: 13px; padding: 8px 16px; }
         }
         @media (max-width: 480px) {
             .header h1 { font-size: 22px; }
             .card { padding: 25px 20px; }
-            .btn { font-size: 13px; padding: 8px 16px; }
+            .btn-uniform { min-width: 90px; font-size: 12px; padding: 8px 12px; }
         }
     </style>
 </head>
@@ -75,8 +90,8 @@ require_once __DIR__ . '/config.php';
             <h3>Login / Register</h3>
             <p>Create an account or login to access the system</p>
             <div class="btn-group">
-                <a href="/tey/login.php" class="btn btn-success">Login</a>
-                <a href="/tey/register.php" class="btn btn-outline">Register</a>
+                <a href="/tey/login.php" class="btn btn-success btn-uniform">Login</a>
+                <a href="/tey/register.php" class="btn btn-outline btn-uniform">Register</a>
             </div>
         </div>
 
@@ -86,8 +101,8 @@ require_once __DIR__ . '/config.php';
             <h3>Report Item</h3>
             <p>Report a lost or found item on campus</p>
             <div class="btn-group">
-                <a href="/lee/report_lost.php" class="btn btn-success">Report Lost</a>
-                <a href="/lee/report_found.php" class="btn btn-success">Report Found</a>
+                <a href="/lee/report_lost.php" class="btn btn-success btn-uniform">Report Lost</a>
+                <a href="/lee/report_found.php" class="btn btn-success btn-uniform">Report Found</a>
             </div>
         </div>
 
@@ -97,7 +112,7 @@ require_once __DIR__ . '/config.php';
             <h3>Check Matches</h3>
             <p>View matching items and notifications</p>
             <div class="btn-group">
-                <a href="/syafiqah/matching/dashboard.php" class="btn btn-primary">Dashboard</a>
+                <a href="/syafiqah/matching/dashboard.php" class="btn btn-primary btn-uniform">Dashboard</a>
             </div>
         </div>
 
@@ -107,8 +122,8 @@ require_once __DIR__ . '/config.php';
             <h3>Claim Verification</h3>
             <p>Submit a claim for a matched item</p>
             <div class="btn-group">
-                <a href="/tan/claim_status.php" class="btn btn-teal">My Claims</a>
-                <a href="/tan/verify_claim.php" class="btn btn-secondary">Admin</a>
+                <a href="/tan/claim_status.php" class="btn btn-teal btn-uniform">My Claims</a>
+                <a href="/tan/verify_claim.php" class="btn btn-secondary btn-uniform">Admin</a>
             </div>
         </div>
     </div>
