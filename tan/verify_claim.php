@@ -89,6 +89,8 @@ $all_result = $conn->query($all_sql);
         .btn-reject:hover { background: #c82333; }
         .btn-return { background: #17a2b8; color: white; }
         .btn-return:hover { background: #138496; }
+        .btn-back { background: #6c757d; color: white; }
+        .btn-back:hover { background: #5a6268; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; }
         th { background: #343a40; color: white; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #ddd; }
@@ -97,9 +99,12 @@ $all_result = $conn->query($all_sql);
         .badge-verified { background: #28a745; color: #fff; }
         .badge-rejected { background: #dc3545; color: #fff; }
         .badge-returned { background: #17a2b8; color: #fff; }
-        .login-form { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .login-form input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; }
+        .login-form { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); text-align: center; }
+        .login-form input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
         .login-form input[type="submit"] { background: #007bff; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; }
+        .login-form input[type="submit"]:hover { background: #0056b3; }
+        .login-form .btn-back { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; }
+        .login-form .btn-back:hover { background: #5a6268; }
     </style>
 </head>
 <body>
@@ -117,6 +122,9 @@ $all_result = $conn->query($all_sql);
             <input type="submit" value="Login">
         </form>
         <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">Default password: <strong>admin123</strong></p>
+        
+        <!-- ✅ BACK TO HOME BUTTON ADDED HERE -->
+        <a href="/index.php" class="btn-back">🏠 Back to Home</a>
     </div>
     <?php exit(); ?>
 <?php endif; ?>
@@ -125,6 +133,7 @@ $all_result = $conn->query($all_sql);
     <h2>🔐 Admin Claim Verification Dashboard</h2>
     <div>
         <a href="?logout=1" style="color: #ffc107; text-decoration: none;">🚪 Logout</a>
+        <a href="/index.php" style="color: #ffc107; text-decoration: none; margin-left: 15px;">🏠 Home</a>
     </div>
 </div>
 
