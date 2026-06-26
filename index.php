@@ -14,12 +14,9 @@ require_once __DIR__ . '/config.php';
         body { font-family: Arial, sans-serif; background: #f4f7fc; min-height: 100vh; display: flex; flex-direction: column; }
         
         /* ===== HEADER ===== */
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
-        .header h1 { font-size: 40px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 50px 20px; text-align: center; }
+        .header h1 { font-size: 44px; }
         .header p { font-size: 18px; opacity: 0.9; margin-top: 10px; }
-        .user-info { background: rgba(255,255,255,0.15); padding: 10px 25px; border-radius: 50px; display: inline-block; margin-top: 15px; }
-        .user-info a { color: #ffd700; text-decoration: none; margin-left: 15px; font-weight: bold; }
-        .user-info a:hover { text-decoration: underline; }
 
         /* ===== MODULE CARDS ===== */
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; flex: 1; }
@@ -68,19 +65,6 @@ require_once __DIR__ . '/config.php';
     <div class="header">
         <h1>🔍 Lost and Found Assistant</h1>
         <p>Find what you've lost. Return what you've found.</p>
-        
-        <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="user-info">
-                👋 Welcome, <?php echo htmlspecialchars($_SESSION['name'] ?? 'User'); ?>!
-                <a href="/tey/logout.php">🚪 Logout</a>
-            </div>
-        <?php else: ?>
-            <div class="user-info">
-                👋 Welcome, Guest!
-                <a href="/tey/login.php">🔐 Login</a>
-                <a href="/tey/register.php">📝 Register</a>
-            </div>
-        <?php endif; ?>
     </div>
 
     <!-- ===== MODULE CARDS ===== -->
@@ -102,7 +86,7 @@ require_once __DIR__ . '/config.php';
             <h3>Report Item</h3>
             <p>Report a lost or found item on campus</p>
             <div class="btn-group">
-                <a href="/lee/report_lost.php" class="btn btn-outline">Report Lost</a>
+                <a href="/lee/report_lost.php" class="btn btn-success">Report Lost</a>
                 <a href="/lee/report_found.php" class="btn btn-success">Report Found</a>
             </div>
         </div>
