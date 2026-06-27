@@ -2,8 +2,6 @@
  * UTM Lost & Found Assistant - Conversational Chatbot Widget
  * Innocent filename (assistant.js) and endpoint (query_helper.php)
  * to bypass hosting/ModSecurity firewall blocks.
- * 
- * Dark-mode / Glassmorphism theme update.
  */
 
 (function() {
@@ -32,8 +30,8 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -43,7 +41,7 @@
         }
         #botpress-float-btn:hover {
             transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
         }
         #botpress-float-btn svg {
             width: 28px;
@@ -52,14 +50,14 @@
             transition: all 0.3s ease;
         }
         #botpress-float-btn.active {
-            background: #f43f5e;
-            box-shadow: 0 4px 16px rgba(244, 63, 94, 0.4);
+            background: #ef4444;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
         }
         #botpress-float-btn.active svg {
             transform: rotate(90deg);
         }
 
-        /* Chat Window (Dark Theme Glassmorphism) */
+        /* Chat Window */
         #botpress-chat-window {
             position: fixed;
             bottom: 100px;
@@ -67,10 +65,8 @@
             width: 380px;
             height: 540px;
             border-radius: 16px;
-            background: rgba(13, 20, 36, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12), 0 8px 10px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -79,8 +75,8 @@
             transform: translateY(20px) scale(0.95);
             pointer-events: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Inter', sans-serif;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            border: 1px solid #e2e8f0;
         }
         #botpress-chat-window.open {
             opacity: 1;
@@ -90,13 +86,13 @@
 
         /* Header */
         .bp-header {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             padding: 16px 20px;
             color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .bp-header-info {
             display: flex;
@@ -123,7 +119,6 @@
             font-weight: 700;
             margin: 0;
             line-height: 1.2;
-            font-family: 'Space Grotesk', sans-serif;
         }
         .bp-subtitle {
             font-size: 11px;
@@ -160,7 +155,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background-color: #070b14;
+            background-color: #f8fafc;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -174,29 +169,29 @@
             background: transparent;
         }
         .bp-messages-body::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.3);
+            background: #cbd5e1;
             border-radius: 10px;
         }
 
         /* Message Bubbles */
         .bp-msg {
-            max-width: 85%;
+            max-width: 80%;
             padding: 12px 16px;
             border-radius: 14px;
             font-size: 13px;
             line-height: 1.5;
             word-wrap: break-word;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .bp-msg-bot {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: #f8fafc;
+            background-color: #ffffff;
+            color: #1e293b;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid #e2e8f0;
         }
         .bp-msg-user {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: #ffffff;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
@@ -209,7 +204,7 @@
             margin-bottom: 0;
         }
         .bp-msg-bot strong {
-            color: #818cf8;
+            color: #4f46e5;
         }
         .bp-msg-bot ul, .bp-msg-bot ol {
             margin: 6px 0;
@@ -222,11 +217,11 @@
         /* Typing Indicator */
         .bp-typing {
             align-self: flex-start;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #ffffff;
             padding: 12px 16px;
             border-radius: 14px;
             border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -234,7 +229,7 @@
         .bp-dot {
             width: 6px;
             height: 6px;
-            background: #818cf8;
+            background: #94a3b8;
             border-radius: 50%;
             animation: bp-bounce 1.4s infinite ease-in-out both;
         }
@@ -249,17 +244,15 @@
         /* Input Footer */
         .bp-footer {
             padding: 12px 16px;
-            background: rgba(13, 20, 36, 0.95);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #ffffff;
+            border-top: 1px solid #cbd5e1;
             display: flex;
             gap: 8px;
             align-items: center;
         }
         .bp-input {
             flex: 1;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #f8fafc;
+            border: 1px solid #cbd5e1;
             border-radius: 20px;
             padding: 10px 16px;
             font-size: 13px;
@@ -267,16 +260,12 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        .bp-input::placeholder {
-            color: #64748b;
-        }
         .bp-input:focus {
-            border-color: #6366f1;
-            background: rgba(99, 102, 241, 0.08);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
         .bp-send-btn {
-            background: #6366f1;
+            background: #4f46e5;
             border: none;
             width: 36px;
             height: 36px;
@@ -289,7 +278,7 @@
             transition: background 0.2s, transform 0.2s;
         }
         .bp-send-btn:hover {
-            background: #4f46e5;
+            background: #4338ca;
             transform: scale(1.05);
         }
         .bp-send-btn svg {
@@ -346,7 +335,7 @@
                 </button>
             </div>
         </div>
- 
+
         <div id="botpress-float-btn">
             <svg id="bp-icon-chat" viewBox="0 0 24 24">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
@@ -398,7 +387,7 @@
             if (url.startsWith('uploads/')) {
                 targetUrl = basePath + url;
             }
-            return `<a href="${targetUrl}" target="_blank" style="color: #818cf8; font-weight: 700; text-decoration: underline;">${label}</a>`;
+            return `<a href="${targetUrl}" target="_blank" style="color: #4f46e5; font-weight: 700; text-decoration: underline;">${label}</a>`;
         });
         text = text.replace(/\n/g, '<br>');
         return text;

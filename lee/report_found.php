@@ -1,9 +1,12 @@
 <?php
 include '../config.php';
 session_start();
+
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: ../tey/login.php"); exit;
+    header("location: ../tey/login.php");
+    exit;
 }
+
 $user_name = $_SESSION["user_name"];
 ?>
 <!DOCTYPE html>
@@ -11,102 +14,128 @@ $user_name = $_SESSION["user_name"];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Found Item — UTM Lost &amp; Found</title>
+    <title>Report Found Item – UTM Lost & Found</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { background-color: var(--bg-base); }
-        #map { height: 240px; margin-top: 10px; border-radius: var(--r-md); border: 1px solid var(--border); z-index: 1; }
+        body { background: var(--light-bg); }
+        #map { height: 230px; border-radius: var(--radius-sm); border: 1.5px solid #cbd5e1; z-index: 1; margin-top: 10px; }
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
+
     <nav class="custom-navbar">
-        <a href="../index.php" class="brand">🔍 UTM Lost &amp; Found</a>
+        <a href="../index.php" class="brand">🔍 UTM Lost & Found</a>
         <div class="nav-links">
-            <a href="../syafiqah/matching/dashboard.php" style="font-size:13px; color:var(--text-muted);">📋 Dashboard</a>
-            <span class="nav-user-badge">👤 <strong><?php echo htmlspecialchars($user_name); ?></strong></span>
-            <a href="../tey/logout.php" class="btn-custom btn-custom-secondary" style="padding:7px 16px; font-size:12px;">Logout</a>
+            <a href="../syafiqah/matching/dashboard.php">📊 Dashboard</a>
+            <span>Hi, <strong><?php echo htmlspecialchars($user_name); ?></strong></span>
+            <a href="../tey/logout.php" class="btn-custom btn-custom-outline" style="padding: 7px 16px; font-size: 12px;">Logout</a>
         </div>
     </nav>
 
-    <div class="header-hero" style="padding:50px 20px;">
-        <h1 style="font-size:32px; margin-bottom:8px;">🤝 Report a Found Item</h1>
-        <p>You've made someone's day — fill in the details so the rightful owner can find their way back to it.</p>
+    <div class="header-hero" style="padding: 50px 20px; background: linear-gradient(135deg, #064e3b, #065f46, #047857);">
+        <h1>🟢 Report Found Item</h1>
+        <p>You found something! Help return it to its owner by reporting it here.</p>
     </div>
 
-    <div class="app-container" style="max-width:680px;">
-        <div class="glass-card animate-fade-up">
+    <div class="app-container" style="max-width: 660px;">
+        <div class="glass-card">
+
+            <div class="alert-custom alert-custom-success mb-4" style="font-size: 13px;">
+                🙏 <strong>Thank you for your honesty!</strong> Your report will be cross-referenced instantly with all lost item reports to find the owner.
+            </div>
+
             <form action="save_report.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="type" value="found">
 
+                <p class="form-section-title">Item Information</p>
+
                 <div class="form-group">
                     <label for="item_name">Item Name *</label>
-                    <input type="text" name="item_name" id="item_name" class="form-control"
-                           placeholder="e.g., Student Card, Sony Wireless Headset, Black Wallet" required>
+                    <input type="text" name="item_name" id="item_name" class="form-control" placeholder="e.g., UTM Matric Card, Samsung Galaxy Phone" required>
                 </div>
 
                 <div class="form-group">
                     <label for="description">Detailed Description *</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
-                              placeholder="Describe colour, brand, keychains, condition. You may omit sensitive details (e.g., cash amount) to verify owner claims later..." required></textarea>
+                        placeholder="Color, condition, brand, model. You may omit sensitive details (e.g., cash amount) to verify the owner's identity later..." required></textarea>
                 </div>
+
+                <p class="form-section-title mt-4">Location & Date</p>
 
                 <div class="form-group">
                     <label for="location">Location Found *</label>
-                    <input type="text" name="location" id="location" class="form-control"
-                           placeholder="e.g., Near Library Level 2 elevator, Block N28 concourse" required>
+                    <input type="text" name="location" id="location" class="form-control" placeholder="e.g., Library Level 2, Block N28 Concourse" required>
                     <div id="map"></div>
-                    <small style="font-size:11px; color:var(--text-muted); margin-top:6px; display:block;">
-                        💡 Click or drag the marker to auto-fill the location.
-                    </small>
+                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">💡 Click or drag the marker on the map to auto-fill the location field.</small>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="date">Date Found *</label>
-                            <input type="date" name="date" id="date" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="item_photo">Photo of Item *</label>
-                            <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" required>
-                            <small style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">JPG/PNG/GIF, max 5 MB</small>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="date">Date Found *</label>
+                    <input type="date" name="date" id="date" class="form-control" required>
                 </div>
 
-                <div style="display:flex; gap:12px; margin-top:8px;">
-                    <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-secondary flex-fill">Cancel</a>
-                    <button type="submit" class="btn-custom btn-custom-success flex-fill">🟢 Submit Found Report</button>
+                <p class="form-section-title mt-4">Photo</p>
+
+                <div class="form-group mb-4">
+                    <label for="item_photo">Upload Item Photo *</label>
+                    <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" required>
+                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">📷 Upload a clear picture. Our AI system will analyze it to auto-tag the item. Max: 5MB.</small>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-secondary flex-fill text-center">Cancel</a>
+                    <button type="submit" class="btn-custom btn-custom-success flex-fill">Submit Found Report →</button>
                 </div>
             </form>
         </div>
+
+        <div class="text-center mt-4">
+            <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2 px-5">← Dashboard</a>
+        </div>
     </div>
 
-    <footer class="custom-footer mt-5"><p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming</p></footer>
+    <footer class="custom-footer mt-5">
+        <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Project</p>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('map').setView([1.5615, 103.6393], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-        const marker = L.marker([1.5615, 103.6393], { draggable: true }).addTo(map);
-        function revGeocode(lat, lng) {
+        const utmLat = 1.5615, utmLng = 103.6393;
+        const map = L.map('map').setView([utmLat, utmLng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        const marker = L.marker([utmLat, utmLng], { draggable: true }).addTo(map);
+
+        function updateLocation(lat, lng) {
+            const input = document.getElementById('location');
+            input.placeholder = 'Geocoding...';
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
                 headers: { 'User-Agent': 'UTMLostAndFoundAssistant/1.0' }
-            }).then(r => r.json()).then(d => {
-                const loc = d.address;
-                const name = loc?.amenity || loc?.building || loc?.university || loc?.road || loc?.suburb || 'UTM Area';
-                document.getElementById('location').value = `${name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+            }).then(r => r.json()).then(data => {
+                const a = data.address || {};
+                const loc = a.amenity || a.building || a.university || a.road || a.suburb || 'UTM Area';
+                input.value = `${loc} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
             }).catch(() => {
-                document.getElementById('location').value = `UTM Campus (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                input.value = `UTM Campus (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
             });
         }
-        marker.on('dragend', () => { const { lat, lng } = marker.getLatLng(); revGeocode(lat, lng); });
-        map.on('click', e => { marker.setLatLng(e.latlng); revGeocode(e.latlng.lat, e.latlng.lng); });
+
+        marker.on('dragend', e => { const p = marker.getLatLng(); updateLocation(p.lat, p.lng); });
+        map.on('click', e => { marker.setLatLng(e.latlng); updateLocation(e.latlng.lat, e.latlng.lng); });
     </script>
     <script src="../assets/js/assistant.js"></script>
 </body>
