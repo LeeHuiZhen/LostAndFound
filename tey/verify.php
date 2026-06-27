@@ -32,14 +32,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         body {
-            background-color: var(--light-bg);
+            /* Keeps the background image identical across login, register, and verification */
+            background: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.65)), 
+                        url('../LostAndFound_background.png') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .verify-card { max-width: 440px; width: 100%; }
+        
+        /* Floating card container configuration matching the design system */
+        .verify-card { 
+            max-width: 440px; 
+            width: 100%; 
+            padding: 35px;
+            background: rgba(255, 255, 255, 0.94) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            border-radius: 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3) !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .verify-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.45) !important;
+        }
     </style>
 </head>
 <body>
