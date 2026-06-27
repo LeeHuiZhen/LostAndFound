@@ -1,5 +1,6 @@
 <?php
 session_start();
+// Fix database connection path
 require_once '../../config.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -10,6 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 $user_id = $_SESSION["user_id"];
 $user_name = $_SESSION["user_name"];
 
+// Fetch matches where the logged-in user is either the owner of the lost item or the reporter of the found item
 $sql = "
 SELECT 
     m.*, 
@@ -32,16 +34,21 @@ $stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Potential Match Results - Lost & Found Assistant</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Style -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        body { background-color: var(--light-bg); }
+        body {
+            background-color: var(--light-bg);
+        }
         .match-card {
             background: white;
             border: 1px solid var(--border-color);
@@ -63,7 +70,9 @@ $result = $stmt->get_result();
             justify-content: space-between;
             align-items: center;
         }
-        .match-body { padding: 20px; }
+        .match-body {
+            padding: 20px;
+        }
         .match-image {
             max-width: 120px;
             height: 120px;
@@ -74,23 +83,31 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
+
+    <!-- ===== NAVBAR ===== -->
     <nav class="custom-navbar">
-        <a href="../../index.php" class="brand">🔍 UTM Lost & Found</a>
+        <a href="../../index.php" class="brand">
+            🔍 UTM Lost & Found
+        </a>
         <div class="nav-links">
             <a href="dashboard.php" style="color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 15px;">📋 Dashboard</a>
+            <span style="font-size: 14px; font-weight: 500; color: var(--text-muted); margin-right: 15px;">
+                Welcome, <strong style="color: var(--primary-color);"><?php echo htmlspecialchars($user_name); ?></strong>
+            </span>
             <a href="../../tey/logout.php" class="btn-custom btn-custom-outline" style="padding: 6px 16px; font-size: 12px;">🚪 Logout</a>
         </div>
     </nav>
 
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="app-container" style="max-width: 850px;">
         <div class="glass-card">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2" style="border-bottom: 2px solid #f1f5f9;">
-                <h2 class="m-0">🎯 My Match Results</h2>
+                <h2 class="m-0" style="border-bottom: none; padding-bottom: 0;">🎯 My Match Results</h2>
                 <a href="dashboard.php" class="btn-custom btn-custom-secondary py-1 px-3" style="font-size: 12px;">⬅ Dashboard</a>
             </div>
 
             <p class="text-muted mb-4" style="font-size: 14px;">
-                Below are potential matches. Owners of the lost items can click **Claim Item** to upload proof of ownership.
+                Below are the potential matches calculated by our system. If you are the owner of the lost item, click **Claim Item** to file a claim and upload proof.
             </p>
 
             <?php if ($result && $result->num_rows > 0): ?>
@@ -108,6 +125,7 @@ $result = $stmt->get_result();
                                 $status = $row['status'];
                                 if ($status == 'pending') echo '<span class="status-badge status-badge-pending">⏳ Pending</span>';
                                 elseif ($status == 'claimed') echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
+                                elseif ($status == 'verified') echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
                                 elseif ($status == 'returned') echo '<span class="status-badge status-badge-returned">🎉 Returned</span>';
                                 ?>
                             </div>
@@ -116,7 +134,8 @@ $result = $stmt->get_result();
                             <div class="row align-items-center g-3">
                                 <div class="col-md-2 text-center text-md-start">
                                     <?php if ($row['found_photo']): ?>
-                                        <img src="../../<?php echo htmlspecialchars($row['found_photo']); ?>" alt="Found item" class="match-image">
+                                        <!-- Note: photo_url is stored relative to root (e.g. uploads/item.jpg), so we prepend ../../ to access it from syafiqah/matching/ -->
+                                        <img src="../../<?php echo htmlspecialchars($row['found_photo']); ?>" alt="Found item photo" class="match-image">
                                     <?php else: ?>
                                         <div class="match-image d-flex align-items-center justify-content-center bg-light text-muted">
                                             <span style="font-size: 11px;">No Image</span>
@@ -140,12 +159,16 @@ $result = $stmt->get_result();
                                 <div class="col-md-3 text-center text-md-end">
                                     <?php if ($status == 'pending'): ?>
                                         <?php if ($is_owner): ?>
-                                            <a href="../../tan/claim_form.php?match_id=<?php echo $row['match_id']; ?>" class="btn-custom btn-custom-success py-2 w-100" style="font-size: 12px;">🙋‍♂️ Claim Item</a>
+                                            <a href="../../tan/claim_form.php?match_id=<?php echo $row['match_id']; ?>" class="btn-custom btn-custom-success py-2 w-100" style="font-size: 12px;">
+                                                🙋‍♂️ Claim Item
+                                            </a>
                                         <?php else: ?>
                                             <span class="text-muted" style="font-size: 11px; display: block; text-align: center;">Waiting for owner claim</span>
                                         <?php endif; ?>
-                                    <?php elseif ($status == 'claimed'): ?>
-                                        <a href="../../tan/claim_status.php" class="btn-custom btn-custom-outline w-100 py-2" style="font-size: 12px;">📋 View Claim Status</a>
+                                    <?php elseif ($status == 'claimed' || $status == 'verified'): ?>
+                                        <a href="../../tan/claim_status.php" class="btn-custom btn-custom-outline w-100 py-2" style="font-size: 12px;">
+                                            📋 View Claim Status
+                                        </a>
                                     <?php else: ?>
                                         <span class="text-success fw-bold" style="font-size: 13px; display: block; text-align: center;">🎉 Handed Over!</span>
                                     <?php endif; ?>
@@ -158,6 +181,7 @@ $result = $stmt->get_result();
                 <div class="text-center py-5 text-muted">
                     <span style="font-size: 40px;">🔍</span>
                     <p class="mt-3 m-0">No matches found for your reports yet.</p>
+                    <p style="font-size: 12px;">Make sure you have active reports, or run a matching scan from the dashboard.</p>
                 </div>
             <?php endif; ?>
 
@@ -167,8 +191,11 @@ $result = $stmt->get_result();
         </div>
     </div>
 
+    <!-- ===== FOOTER ===== -->
     <footer class="custom-footer mt-5">
         <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Project</p>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
