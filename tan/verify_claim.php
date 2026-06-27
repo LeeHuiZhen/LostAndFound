@@ -60,6 +60,21 @@ if ($is_admin && isset($_GET['claim_id']) && isset($_GET['action'])) {
                              (SELECT found_item_id FROM matches WHERE match_id = 
                               (SELECT match_id FROM claims WHERE claim_id = $claim_id))";
             $conn->query($update_found);
+        } elseif ($action == 'reject') {
+            // If rejected, reset match and item statuses to 'pending' so they can be matched again
+            $update_match = "UPDATE matches SET status = 'pending' WHERE match_id = 
+                             (SELECT match_id FROM claims WHERE claim_id = $claim_id)";
+            $conn->query($update_match);
+            
+            $update_lost = "UPDATE lost_items SET status = 'pending' WHERE item_id = 
+                            (SELECT lost_item_id FROM matches WHERE match_id = 
+                             (SELECT match_id FROM claims WHERE claim_id = $claim_id))";
+            $conn->query($update_lost);
+            
+            $update_found = "UPDATE found_items SET status = 'pending' WHERE item_id = 
+                             (SELECT found_item_id FROM matches WHERE match_id = 
+                              (SELECT match_id FROM claims WHERE claim_id = $claim_id))";
+            $conn->query($update_found);
         }
     }
 }
