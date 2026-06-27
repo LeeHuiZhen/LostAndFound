@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 🚚 Get latest code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # Upgraded to v4 to resolve Node.js 20 deprecation warning
 
     - name: 📂 Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -29,3 +29,6 @@ jobs:
           .ftp-deploy-sync-state.json
           ftp-sync.json
           email_alerts.log
+          uploads/**                   # Exclude uploaded items so Git doesn't overwrite live uploads
+          uploads/                     # Exclude uploads folder to prevent 553 Permission Denied
+          syafiqah/matching/email_alerts.log
