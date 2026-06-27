@@ -60,9 +60,22 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
             VALUES ($match_id, $user_id, '$proof_db_path', '$proof_description', 'pending')";
 
     if ($conn->query($sql) === TRUE) {
+        $claim_id = $conn->insert_id;
+        
+        // 1. Update match status to 'claimed'
         $update_sql = "UPDATE matches SET status = 'claimed' WHERE match_id = $match_id";
         $conn->query($update_sql);
-        $claim_id = $conn->insert_id;
+        
+        // 2. Update corresponding lost item status to 'claimed'
+        $update_lost = "UPDATE lost_items SET status = 'claimed' WHERE item_id = 
+                        (SELECT lost_item_id FROM matches WHERE match_id = $match_id)";
+        $conn->query($update_lost);
+        
+        // 3. Update corresponding found item status to 'claimed'
+        $update_found = "UPDATE found_items SET status = 'claimed' WHERE item_id = 
+                         (SELECT found_item_id FROM matches WHERE match_id = $match_id)";
+        $conn->query($update_found);
+        
         $success = true;
     } else {
         $error_msg = "Database Error: " . $conn->error;
@@ -77,7 +90,9 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claim Status - Lost & Found Assistant</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Style -->
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         body {
@@ -88,15 +103,19 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
             justify-content: center;
             padding: 20px;
         }
-        .status-card { max-width: 500px; width: 100%; }
+        .status-card {
+            max-width: 500px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
+
     <div class="status-card glass-card text-center">
         <?php if ($success): ?>
             <div class="mb-4">
                 <span style="font-size: 50px;">✅</span>
-                <h2 class="mt-2 text-success">Claim Submitted!</h2>
+                <h2 class="mt-2 text-success" style="border-bottom: none; padding-bottom: 0;">Claim Submitted!</h2>
                 <p class="text-muted">Your claim has been successfully recorded.</p>
             </div>
             
@@ -111,13 +130,17 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
             </p>
 
             <div class="d-flex flex-column gap-2">
-                <a href="claim_status.php" class="btn-custom btn-custom-success py-2">📋 View Claim Status</a>
-                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">🏠 Back to Workspace</a>
+                <a href="claim_status.php" class="btn-custom btn-custom-success py-2">
+                    📋 View Claim Status
+                </a>
+                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">
+                    🏠 Back to Workspace
+                </a>
             </div>
         <?php else: ?>
             <div class="mb-4">
                 <span style="font-size: 50px;">❌</span>
-                <h2 class="mt-2 text-danger">Submission Failed</h2>
+                <h2 class="mt-2 text-danger" style="border-bottom: none; padding-bottom: 0;">Submission Failed</h2>
                 <p class="text-muted">An error occurred while uploading your proof document.</p>
             </div>
             
@@ -126,10 +149,15 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
             </div>
 
             <div class="d-flex flex-column gap-2">
-                <a href="javascript:history.back()" class="btn-custom btn-custom-primary py-2">⬅ Go Back and Try Again</a>
-                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">🏠 Back to Dashboard</a>
+                <a href="javascript:history.back()" class="btn-custom btn-custom-primary py-2">
+                    ⬅ Go Back and Try Again
+                </a>
+                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">
+                    🏠 Back to Dashboard
+                </a>
             </div>
         <?php endif; ?>
     </div>
+
 </body>
 </html>
