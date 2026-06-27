@@ -160,7 +160,15 @@ $match_count = $conn->query("SELECT COUNT(*) FROM matches m JOIN lost_items li O
 $claims_count = $conn->query("SELECT COUNT(*) FROM claims WHERE owner_id = $user_id")->fetch_row()[0];
 
 // ===== 5. FETCH RECENT LOST REPORTS =====
-$lost_reports_sql = "SELECT * FROM lost_items WHERE user_id = ? ORDER BY date_lost DESC LIMIT 5";
+$lost_reports_sql = "
+SELECT li.*, c.status AS claim_status
+FROM lost_items li
+LEFT JOIN matches m ON li.item_id = m.lost_item_id
+LEFT JOIN claims c ON m.match_id = c.match_id AND c.status = 'verified'
+WHERE li.user_id = ?
+ORDER BY li.date_lost DESC, li.created_at DESC
+LIMIT 5
+";
 $lost_stmt = $conn->prepare($lost_reports_sql);
 $lost_stmt->bind_param("i", $user_id);
 $lost_stmt->execute();
@@ -342,9 +350,16 @@ $recent_lost = $lost_stmt->get_result();
                                     <td>
                                         <?php 
                                         $status = $row['status'];
-                                        if ($status == 'pending') echo '<span class="status-badge status-badge-pending">⏳ Pending</span>';
-                                        elseif ($status == 'claimed') echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
-                                        elseif ($status == 'returned') echo '<span class="status-badge status-badge-returned">🎉 Returned</span>';
+                                        $claim_status = isset($row['claim_status']) ? $row['claim_status'] : '';
+                                        if ($status == 'returned') {
+                                            echo '<span class="status-badge status-badge-returned">🎉 Returned</span>';
+                                        } elseif ($claim_status == 'verified') {
+                                            echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
+                                        } elseif ($status == 'claimed') {
+                                            echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
+                                        } else {
+                                            echo '<span class="status-badge status-badge-pending">⏳ Pending</span>';
+                                        }
                                         ?>
                                     </td>
                                 </tr>
