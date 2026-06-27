@@ -1,143 +1,101 @@
 <?php
 session_start();
-// Fix database connection path
 require_once '../../config.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: ../../tey/login.php");
-    exit;
+    header("location: ../../tey/login.php"); exit;
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id   = $_SESSION["user_id"];
 $user_name = $_SESSION["user_name"];
 
-// Fetch the logged-in user's active (non-returned) lost reports
-$sql = "
-SELECT li.*, c.status AS claim_status
-FROM lost_items li
-LEFT JOIN matches m ON li.item_id = m.lost_item_id
-LEFT JOIN claims c ON m.match_id = c.match_id AND c.status = 'verified'
-WHERE li.user_id = ? AND li.status != 'returned'
-ORDER BY li.date_lost DESC, li.created_at DESC
-";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
+// Security Fix #5: correlated subquery to avoid duplicate rows when one lost item has multiple matches
+$stmt = $conn->prepare("
+    SELECT li.*,
+           (SELECT c.status FROM claims c
+            JOIN matches m ON c.match_id = m.match_id
+            WHERE m.lost_item_id = li.item_id AND c.status = 'verified' LIMIT 1) AS claim_status
+    FROM lost_items li
+    WHERE li.user_id = ? AND li.status != 'returned'
+    ORDER BY li.date_lost DESC, li.created_at DESC
+");
+$stmt->bind_param("i", $user_id); $stmt->execute();
 $result = $stmt->get_result();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pending Reports - Lost & Found Assistant</title>
-    <!-- Bootstrap 5 -->
+    <title>Pending Reports — UTM Lost &amp; Found</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom Style -->
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <style>
-        body {
-            background-color: var(--light-bg);
-        }
-        .pending-item-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-        .pending-item-card:hover {
-            box-shadow: var(--shadow-md);
-            border-color: #cbd5e1;
-        }
-    </style>
+    <style> body { background-color: var(--bg-base); } </style>
 </head>
 <body>
-
-    <!-- ===== NAVBAR ===== -->
     <nav class="custom-navbar">
-        <a href="../../index.php" class="brand">
-            🔍 UTM Lost & Found
-        </a>
+        <a href="../../index.php" class="brand">🔍 UTM Lost &amp; Found</a>
         <div class="nav-links">
-            <a href="dashboard.php" style="color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 15px;">📋 Dashboard</a>
-            <span style="font-size: 14px; font-weight: 500; color: var(--text-muted); margin-right: 15px;">
-                Welcome, <strong style="color: var(--primary-color);"><?php echo htmlspecialchars($user_name); ?></strong>
-            </span>
-            <a href="../../tey/logout.php" class="btn-custom btn-custom-outline" style="padding: 6px 16px; font-size: 12px;">🚪 Logout</a>
+            <a href="dashboard.php" style="font-size:13px; color:var(--text-muted);">📋 Dashboard</a>
+            <span class="nav-user-badge">👤 <strong><?php echo htmlspecialchars($user_name); ?></strong></span>
+            <a href="../../tey/logout.php" class="btn-custom btn-custom-secondary" style="padding:7px 16px; font-size:12px;">Logout</a>
         </div>
     </nav>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="app-container" style="max-width: 750px;">
-        <div class="glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-2" style="border-bottom: 2px solid #f1f5f9;">
-                <h2 class="m-0" style="border-bottom: none; padding-bottom: 0;">⏳ My Pending Reports</h2>
-                <a href="dashboard.php" class="btn-custom btn-custom-secondary py-1 px-3" style="font-size: 12px;">⬅ Dashboard</a>
-            </div>
+    <div class="header-hero" style="padding:50px 20px 40px;">
+        <h1 style="font-size:32px; margin-bottom:8px;">⏳ My Pending Reports</h1>
+        <p>Active lost reports waiting for a matching found item. The engine scans 24/7.</p>
+    </div>
 
-            <p class="text-muted mb-4" style="font-size: 14px;">
-                These are the items you have reported as lost that are currently waiting for a matching found report. The matching engine automatically scans the database.
-            </p>
+    <div class="app-container" style="max-width:760px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <a href="dashboard.php" class="btn-custom btn-custom-secondary" style="padding:8px 16px; font-size:13px;">← Dashboard</a>
+        </div>
 
-            <?php if ($result && $result->num_rows > 0): ?>
-                <?php while ($row = $result->fetch_assoc()): ?>
-                    <div class="pending-item-card">
-                        <div>
-                            <h4 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0 0 5px 0;">
-                                <?php echo htmlspecialchars($row['item_name']); ?>
-                            </h4>
-                            <p class="text-muted m-0" style="font-size: 13px; line-height: 1.4; max-width: 500px;">
-                                <?php echo htmlspecialchars($row['description']); ?>
-                            </p>
-                            <small class="text-muted mt-2 d-block" style="font-size: 11px;">
-                                Lost at: <strong><?php echo htmlspecialchars($row['location_lost']); ?></strong> on <?php echo date('d M Y', strtotime($row['date_lost'])); ?>
-                            </small>
-                        </div>
-                        <div class="text-end ms-3">
-                            <?php 
-                            $status = $row['status'];
-                            $claim_status = isset($row['claim_status']) ? $row['claim_status'] : '';
-                            if ($claim_status == 'verified') {
-                                echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
-                            } elseif ($status == 'claimed') {
-                                echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
-                            } else {
-                                echo '<span class="status-badge status-badge-pending">⏳ Waiting for Match</span>';
-                            }
-                            ?>
-                        </div>
+        <?php if ($result && $result->num_rows > 0): ?>
+            <?php while ($row = $result->fetch_assoc()):
+                $s  = $row['status'];
+                $cs = $row['claim_status'] ?? '';
+            ?>
+                <div class="pending-item-card animate-fade-up">
+                    <div style="flex:1; min-width:0;">
+                        <h4 style="font-size:16px; font-weight:700; color:var(--text-primary); margin:0 0 6px;">
+                            <?php echo htmlspecialchars($row['item_name']); ?>
+                        </h4>
+                        <p style="font-size:13px; color:var(--text-muted); margin:0 0 8px; line-height:1.5; max-width:480px;">
+                            <?php echo htmlspecialchars($row['description']); ?>
+                        </p>
+                        <small style="font-size:11px; color:var(--text-muted);">
+                            📍 <?php echo htmlspecialchars($row['location_lost']); ?>
+                            &nbsp;·&nbsp;
+                            <?php echo date('d M Y', strtotime($row['date_lost'])); ?>
+                        </small>
                     </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="text-center py-5 text-muted">
-                    <span style="font-size: 40px;">⏳</span>
-                    <p class="mt-3 m-0">No active pending reports.</p>
-                    <p style="font-size: 12px;">All your lost reports have either been matched or you haven't reported anything yet.</p>
-                    <a href="../../lee/report_lost.php" class="btn-custom btn-custom-primary mt-3 py-1 px-4" style="font-size: 12px; border-radius: 12px;">
-                        Report a Lost Item
-                    </a>
+                    <div style="flex-shrink:0; margin-left:16px;">
+                        <?php
+                        if ($cs == 'verified')   echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
+                        elseif ($s == 'claimed') echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
+                        else                     echo '<span class="status-badge status-badge-pending">⏳ Waiting</span>';
+                        ?>
+                    </div>
                 </div>
-            <?php endif; ?>
-
-            <div class="text-center mt-4">
-                <a href="dashboard.php" class="btn-custom btn-custom-outline py-2 px-4">⬅ Back to Dashboard</a>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <div class="glass-card text-center" style="padding:60px 20px;">
+                <span style="font-size:48px; display:block; margin-bottom:16px;">⏳</span>
+                <h3 style="font-weight:700; margin-bottom:8px;">No Pending Reports</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin-bottom:24px;">All your lost reports have been matched, or you haven't reported anything yet.</p>
+                <a href="../../lee/report_lost.php" class="btn-custom btn-custom-primary" style="padding:12px 28px;">📝 Report a Lost Item</a>
             </div>
+        <?php endif; ?>
+
+        <div style="text-align:center; margin-top:32px;">
+            <a href="dashboard.php" class="btn-custom btn-custom-outline">← Back to Dashboard</a>
         </div>
     </div>
 
-    <!-- ===== FOOTER ===== -->
-    <footer class="custom-footer mt-5">
-        <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Project</p>
-    </footer>
-
+    <footer class="custom-footer mt-5"><p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming</p></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
