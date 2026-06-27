@@ -4,9 +4,12 @@ config.php
 # Uploads and temporary data
 uploads/
 /uploads/*
+email_alerts.log
 
 # System/Editor files
 .vscode/
 .idea/
 .DS_Store
-*.bak No newline at end of file
+*.bak
+.ftp-deploy-sync-state.json
+ftp-sync.json
