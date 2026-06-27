@@ -51,14 +51,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         body {
-            background-color: var(--light-bg);
+            background: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.65)), 
+                        url('../LostAndFound_background.png') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .register-card { max-width: 460px; width: 100%; }
+
+        .register-card {
+            max-width: 460px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.94) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3) !important;
+        }
     </style>
 </head>
 <body>
