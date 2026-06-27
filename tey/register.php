@@ -9,21 +9,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     if (!empty($name) && !empty($email) && !empty($password)) {
-        // Hash the password for security
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         // Check if email already exists
         $sql = "SELECT id FROM users WHERE email = ?";
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("s", $param_email);
-            $param_email = $email;
+            $stmt->bind_param("s", $email);
             
             if ($stmt->execute()) {
                 $stmt->store_result();
                 if ($stmt->num_rows == 1) {
                     $error = "This email is already registered.";
                 } else {
-                    // Insert new user
                     $insert_sql = "INSERT INTO users (name, email, phone, password, is_verified) VALUES (?, ?, ?, ?, 0)";
                     if ($insert_stmt = $conn->prepare($insert_sql)) {
                         $insert_stmt->bind_param("ssss", $name, $email, $phone, $hashed_password);
@@ -44,49 +41,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Lost & Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - UTM Lost & Found Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        body { font: 14px sans-serif; display: flex; justify-content: center; margin-top: 50px; }
-        .wrapper { width: 360px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; }
-        .error { color: red; } .success { color: green; }
+        body {
+            background-color: var(--light-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-card { max-width: 460px; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <h2>Register Account</h2>
-        <?php if(!empty($error)) echo '<p class="error">'.$error.'</p>'; ?>
-        <?php if(!empty($success)) echo '<p class="success">'.$success.'</p>'; ?>
+    <div class="register-card glass-card">
+        <div class="text-center mb-4">
+            <span style="font-size: 40px;">📝</span>
+            <h2 class="mt-2" style="border-bottom: none; padding-bottom: 0;">Create Account</h2>
+            <p class="text-muted" style="font-size: 13px;">Sign up to report and track items</p>
+        </div>
+
+        <?php if(!empty($error)): ?>
+            <div class="alert alert-danger alert-custom alert-custom-danger py-2 px-3 mb-3" style="font-size: 13px;">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if(!empty($success)): ?>
+            <div class="alert alert-success alert-custom alert-custom-success py-2 px-3 mb-3" style="font-size: 13px;">
+                <?php echo htmlspecialchars($success); ?>
+            </div>
+        <?php endif; ?>
         
         <form action="register.php" method="post">
             <div class="form-group">
-                <label>Full Name *</label>
-                <input type="text" name="name" required>
+                <label for="name">Full Name *</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="John Doe" required>
             </div>
             <div class="form-group">
-                <label>Email Address *</label>
-                <input type="email" name="email" required>
+                <label for="email">Email Address *</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="johndoe@utm.my" required>
             </div>
             <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text" name="phone">
+                <label for="phone">Phone Number</label>
+                <input type="text" name="phone" id="phone" class="form-control" placeholder="012-3456789">
+            </div>
+            <div class="form-group mb-4">
+                <label for="password">Password *</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
             </div>
             <div class="form-group">
-                <label>Password *</label>
-                <input type="password" name="password" required>
+                <button type="submit" class="btn-custom btn-custom-primary w-100 py-2">Sign Up</button>
             </div>
-            <div class="form-group">
-                <button type="submit">Sign Up</button>
-            </div>
-            <p>Already have an account? <a href="login.php">Login here</a>.</p>
         </form>
+
+        <div class="text-center mt-4">
+            <p class="mb-2" style="font-size: 13px; color: var(--text-muted);">
+                Already have an account? <a href="login.php" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Login here</a>
+            </p>
+            <a href="../index.php" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">🏠 Back to Home</a>
+        </div>
     </div>
 </body>
 </html>

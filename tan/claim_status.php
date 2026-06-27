@@ -3,11 +3,12 @@ include '../config.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /tey/login.php");
+    header("Location: ../tey/login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'];
 
 $sql = "SELECT c.*, m.match_id, 
                li.item_name as lost_item, li.description as lost_desc,
@@ -20,62 +21,89 @@ $sql = "SELECT c.*, m.match_id,
         ORDER BY c.created_at DESC";
 $result = $conn->query($sql);
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Claims</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Claims - UTM Lost & Found Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: Arial; background: #f4f7fc; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-        h1 { color: #333; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #007bff; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #ddd; }
-        tr:hover { background: #f1f1f1; }
-        .badge { display: inline-block; padding: 3px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; }
-        .badge-pending { background: #ffc107; color: #000; }
-        .badge-verified { background: #28a745; color: #fff; }
-        .badge-rejected { background: #dc3545; color: #fff; }
-        .badge-returned { background: #17a2b8; color: #fff; }
-        .btn { display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-        .btn:hover { background: #5a6268; }
+        body { background-color: var(--light-bg); }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>📋 My Claim Status</h1>
-    <?php if ($result && $result->num_rows > 0): ?>
-    <table>
-        <tr>
-            <th>Claim ID</th>
-            <th>Lost Item</th>
-            <th>Found Item</th>
-            <th>Status</th>
-            <th>Date</th>
-        </tr>
-        <?php while($row = $result->fetch_assoc()): ?>
-        <tr>
-            <td><strong><?php echo $row['claim_id']; ?></strong></td>
-            <td><?php echo htmlspecialchars($row['lost_item']); ?></td>
-            <td><?php echo htmlspecialchars($row['found_item']); ?></td>
-            <td><?php 
-                $status = $row['status'];
-                if ($status == 'pending') echo '<span class="badge badge-pending">⏳ Pending</span>';
-                elseif ($status == 'verified') echo '<span class="badge badge-verified">✅ Verified</span>';
-                elseif ($status == 'rejected') echo '<span class="badge badge-rejected">❌ Rejected</span>';
-                elseif ($status == 'returned') echo '<span class="badge badge-returned">🎉 Returned</span>';
-            ?></td>
-            <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
-    <?php else: ?>
-        <p style="text-align:center; padding:40px; color:#666;">You have not submitted any claims yet.</p>
-    <?php endif; ?>
-    <br>
-    <a href="/index.php" class="btn">⬅ Back to Home</a>
-</div>
+    <nav class="custom-navbar">
+        <a href="../index.php" class="brand">🔍 UTM Lost & Found</a>
+        <div class="nav-links">
+            <a href="../syafiqah/matching/dashboard.php" style="color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 15px;">📋 Dashboard</a>
+            <a href="../tey/logout.php" class="btn-custom btn-custom-outline" style="padding: 6px 16px; font-size: 12px;">🚪 Logout</a>
+        </div>
+    </nav>
+
+    <div class="app-container" style="max-width: 900px;">
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2" style="border-bottom: 2px solid #f1f5f9;">
+                <h2 class="m-0">📋 My Claim Status</h2>
+                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-secondary py-1 px-3" style="font-size: 12px;">⬅ Dashboard</a>
+            </div>
+
+            <p class="text-muted mb-4" style="font-size: 14px;">
+                Track the progress of your submitted claims. UTM Campus Security will verify your proofs. Once verified, you can collect the item from the security office.
+            </p>
+
+            <?php if ($result && $result->num_rows > 0): ?>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Lost Item</th>
+                                <th>Matched Found Item</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><strong>#<?php echo $row['claim_id']; ?></strong></td>
+                                    <td><span class="fw-bold"><?php echo htmlspecialchars($row['lost_item']); ?></span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <?php if ($row['photo_url']): ?>
+                                                <img src="../<?php echo htmlspecialchars($row['photo_url']); ?>" alt="Found photo" style="width: 35px; height: 35px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                            <?php endif; ?>
+                                            <span><?php echo htmlspecialchars($row['found_item']); ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $status = $row['status'];
+                                        if ($status == 'pending') echo '<span class="status-badge status-badge-pending">⏳ Pending</span>';
+                                        elseif ($status == 'verified') echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
+                                        elseif ($status == 'rejected') echo '<span class="status-badge status-badge-rejected">❌ Rejected</span>';
+                                        elseif ($status == 'returned') echo '<span class="status-badge status-badge-returned">🎉 Returned</span>';
+                                        ?>
+                                    </td>
+                                    <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-5 text-muted">
+                    <span style="font-size: 40px;">📋</span>
+                    <p class="mt-3 m-0">You have not submitted any claims yet.</p>
+                </div>
+            <?php endif; ?>
+
+            <div class="text-center mt-4">
+                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2 px-4">⬅ Return to Dashboard</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

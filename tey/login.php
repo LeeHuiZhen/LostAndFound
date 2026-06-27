@@ -7,7 +7,6 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
 }
 
 require_once '../config.php';
-
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -34,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: ../index.php");
                     exit;
                 } else {
-                    $error = "Invalid password.";
+                    $error = "Invalid password. Please try again.";
                 }
             } else {
                 $error = "No account found with that email.";
@@ -50,34 +49,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Lost & Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UTM Lost & Found Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        body { font: 14px sans-serif; display: flex; justify-content: center; margin-top: 50px; }
-        .wrapper { width: 360px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; }
-        .error { color: red; }
+        body {
+            background-color: var(--light-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card { max-width: 420px; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <h2>Login</h2>
-        <?php if(!empty($error)) echo '<p class="error">'.$error.'</p>'; ?>
+    <div class="login-card glass-card">
+        <div class="text-center mb-4">
+            <span style="font-size: 40px;">🔐</span>
+            <h2 class="mt-2" style="border-bottom: none; padding-bottom: 0;">Sign In</h2>
+            <p class="text-muted" style="font-size: 13px;">Access the UTM Lost & Found Portal</p>
+        </div>
+
+        <?php if(!empty($error)): ?>
+            <div class="alert alert-danger alert-custom alert-custom-danger py-2 px-3 mb-3" style="font-size: 13px;">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
         <form action="login.php" method="post">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required>
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="username@utm.my" required>
+            </div>
+            <div class="form-group mb-4">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
+                <button type="submit" class="btn-custom btn-custom-primary w-100 py-2">Sign In</button>
             </div>
-            <div class="form-group">
-                <button type="submit">Login</button>
-            </div>
-            <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
         </form>
+
+        <div class="text-center mt-4">
+            <p class="mb-2" style="font-size: 13px; color: var(--text-muted);">
+                Don't have an account? <a href="register.php" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Sign up now</a>
+            </p>
+            <a href="../index.php" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">🏠 Back to Home</a>
+        </div>
     </div>
 </body>
 </html>

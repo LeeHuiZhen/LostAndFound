@@ -1,6 +1,13 @@
 <?php
-// Include config
-require_once __DIR__ . '/config.php';
+// Initialize session
+session_start();
+require_once 'config.php';
+
+// Automatic flow redirection: If already logged in, redirect directly to Syafiqah's dashboard (The Main Hub)
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    header("Location: syafiqah/matching/dashboard.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -8,136 +15,88 @@ require_once __DIR__ . '/config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lost and Found Assistant</title>
+    <title>UTM Campus Lost & Found Assistant</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Premium Design System Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f4f7fc; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* ===== HEADER ===== */
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 50px 20px; text-align: center; }
-        .header h1 { font-size: 44px; }
-        .header p { font-size: 18px; opacity: 0.9; margin-top: 10px; }
-
-        /* ===== MODULE CARDS ===== */
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; flex: 1; }
-        
-        .card { background: white; padding: 35px 25px 30px; border-radius: 20px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; }
-        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
-        .card .icon { font-size: 50px; margin-bottom: 15px; display: inline-block; }
-        .card:hover .icon { transform: scale(1.1); }
-        .card h3 { font-size: 20px; color: #333; margin-bottom: 10px; }
-        .card p { color: #888; font-size: 14px; margin-bottom: 20px; line-height: 1.6; flex-grow: 1; }
-        
-        /* ===== BUTTON GROUP ===== */
-        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
-        
-        .btn { display: inline-block; padding: 10px 22px; border-radius: 50px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.3s; border: 2px solid transparent; }
-        
-        /* ===== UNIFORM BUTTON WIDTH ===== */
-        .btn-uniform { 
-            min-width: 120px; 
-            text-align: center; 
-        }
-        
-        /* ===== BUTTON STYLES ===== */
-        .btn-primary { background: #667eea; color: white; }
-        .btn-primary:hover { background: #5a67d8; transform: scale(1.02); }
-        
-        .btn-success { background: #28a745; color: white; }
-        .btn-success:hover { background: #218838; transform: scale(1.02); }
-        
-        .btn-teal { background: #17a2b8; color: white; }
-        .btn-teal:hover { background: #138496; transform: scale(1.02); }
-        
-        .btn-outline { background: transparent; color: #667eea; border-color: #667eea; }
-        .btn-outline:hover { background: #667eea; color: white; }
-        
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; transform: scale(1.02); }
-
-        /* ===== FOOTER ===== */
-        .footer { background: white; padding: 20px; text-align: center; color: #888; border-top: 1px solid #eee; margin-top: auto; }
-        .footer .team { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 10px; font-size: 14px; }
-        .footer .team strong { color: #333; }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 28px; }
-            .header p { font-size: 16px; }
-            .container { grid-template-columns: 1fr; max-width: 400px; }
-            .btn-uniform { min-width: 100px; font-size: 13px; padding: 8px 16px; }
-        }
-        @media (max-width: 480px) {
-            .header h1 { font-size: 22px; }
-            .card { padding: 25px 20px; }
-            .btn-uniform { min-width: 90px; font-size: 12px; padding: 8px 12px; }
+        body {
+            background-color: var(--light-bg);
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
-    <div class="header">
-        <h1>🔍 Lost and Found Assistant</h1>
-        <p>Find what you've lost. Return what you've found.</p>
+    <!-- ===== NAVBAR ===== -->
+    <nav class="custom-navbar">
+        <a href="index.php" class="brand">
+            🔍 UTM Campus Lost & Found
+        </a>
+        <div class="nav-links">
+            <a href="tey/login.php" class="btn-custom btn-custom-primary" style="padding: 6px 16px; font-size: 12px;">🔑 Sign In</a>
+        </div>
+    </nav>
+
+    <!-- ===== HEADER / HERO ===== -->
+    <div class="header-hero">
+        <h1>🔍 UTM Campus Lost & Found Assistant</h1>
+        <p>Digitalizing lost-and-found recovery for students and faculty. Rapid keyword matching, secure proof verification, and automated status updates.</p>
     </div>
 
-    <!-- ===== MODULE CARDS ===== -->
-    <div class="container">
-        <!-- Card 1: Login / Register -->
-        <div class="card">
-            <div class="icon">🔐</div>
-            <h3>Login / Register</h3>
-            <p>Create an account or login to access the system</p>
-            <div class="btn-group">
-                <a href="/tey/login.php" class="btn btn-success btn-uniform">Login</a>
-                <a href="/tey/register.php" class="btn btn-outline btn-uniform">Register</a>
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="app-container" style="max-width: 800px;">
+        
+        <div class="glass-card text-center mb-4">
+            <h2>👋 Welcome to the Assistant Portal</h2>
+            <p class="text-muted mt-2">
+                This platform helps the UTM campus community report lost items, match them with found possessions, and securely coordinate handovers.
+            </p>
+            
+            <div class="row g-3 my-4 justify-content-center">
+                <div class="col-md-6">
+                    <div class="p-4 border rounded bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <span style="font-size: 40px;">🙋‍♂️</span>
+                            <h4 style="font-size: 16px; font-weight: 700; margin-top: 10px;">For Students & Staff</h4>
+                            <p class="text-muted" style="font-size: 12px; line-height: 1.4;">Sign in with your email to report a lost or found item, run the matching engine, and submit ownership proof claims.</p>
+                        </div>
+                        <a href="tey/login.php" class="btn-custom btn-custom-primary mt-3 w-100">Sign In / Register</a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 border rounded bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <span style="font-size: 40px;">👮‍♂️</span>
+                            <h4 style="font-size: 16px; font-weight: 700; margin-top: 10px;">For Campus Security</h4>
+                            <p class="text-muted" style="font-size: 12px; line-height: 1.4;">Access the secure administrator portal to review submitted proof documents, verify claims, and log physical item handovers.</p>
+                        </div>
+                        <a href="tan/verify_claim.php" class="btn-custom btn-custom-secondary mt-3 w-100">Admin Portal</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-custom alert-custom-info text-start py-3 px-4 mb-0" style="font-size: 13px;">
+                💡 <strong>How it works:</strong> Once you log in, you will be taken to your personal <strong>Workspace Dashboard</strong>, which serves as your main control panel. From there, you can file reports, trigger matching scans, and check claim statuses seamlessly.
             </div>
         </div>
 
-        <!-- Card 2: Report Item -->
-        <div class="card">
-            <div class="icon">📝</div>
-            <h3>Report Item</h3>
-            <p>Report a lost or found item on campus</p>
-            <div class="btn-group">
-                <a href="/lee/report_lost.php" class="btn btn-success btn-uniform">Report Lost</a>
-                <a href="/lee/report_found.php" class="btn btn-success btn-uniform">Report Found</a>
-            </div>
-        </div>
-
-        <!-- Card 3: Check Matches -->
-        <div class="card">
-            <div class="icon">🔍</div>
-            <h3>Check Matches</h3>
-            <p>View matching items and notifications</p>
-            <div class="btn-group">
-                <a href="/syafiqah/matching/dashboard.php" class="btn btn-primary btn-uniform">Dashboard</a>
-            </div>
-        </div>
-
-        <!-- Card 4: Claim Verification -->
-        <div class="card">
-            <div class="icon">📋</div>
-            <h3>Claim Verification</h3>
-            <p>Submit a claim for a matched item</p>
-            <div class="btn-group">
-                <a href="/tan/claim_status.php" class="btn btn-teal btn-uniform">My Claims</a>
-                <a href="/tan/verify_claim.php" class="btn btn-secondary btn-uniform">Admin</a>
-            </div>
-        </div>
     </div>
 
     <!-- ===== FOOTER ===== -->
-    <div class="footer">
-        <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Project</p>
-        <div class="team">
-            <span><strong>Tey</strong> Login Module</span>
+    <footer class="custom-footer mt-5">
+        <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Final Project</p>
+        <div class="team-credits">
+            <span><strong>Tey</strong> User Authentication</span>
             <span><strong>Lee</strong> Report Module</span>
-            <span><strong>Syafiqah</strong> Matching Module</span>
-            <span><strong>Tan</strong> Claim Module</span>
+            <span><strong>Syafiqah</strong> Matching & Notifications</span>
+            <span><strong>Tan</strong> Claim Verification</span>
         </div>
-    </div>
+    </footer>
 
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Conversational Chatbot Widget (Botpress Mockup) -->
+    <script src="assets/js/assistant.js"></script>
 </body>
 </html>
