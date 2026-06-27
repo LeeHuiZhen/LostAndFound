@@ -32,3 +32,5 @@ jobs:
           uploads/**                   # Exclude uploaded items so Git doesn't overwrite live uploads
           uploads/                     # Exclude uploads folder to prevent 553 Permission Denied
           syafiqah/matching/email_alerts.log
+          files for your website should be uploaded here!
+          "files for your website should be uploaded here!"
