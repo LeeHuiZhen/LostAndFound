@@ -1,1 +1,5 @@
+# UTM Lost & Found Server Settings
 php_flag display_errors on
+
+# Prevent users from browsing directories if index.php is missing
+Options -Indexes
