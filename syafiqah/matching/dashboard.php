@@ -186,10 +186,40 @@ $recent_lost = $lost_stmt->get_result();
     <!-- Custom Style -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        body { background-color: var(--light-bg); }
-        .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 20px; font-weight: 700; font-size: 18px; color: #1e293b; }
-        .notif-banner { background-color: #f0f9ff; border-left: 5px solid var(--info-color); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
-    </style>
+    body { 
+        
+        background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)), 
+                    url('../LostAndFound_dashboard.png') no-repeat center center fixed; 
+        background-size: cover;
+        min-height: 100vh;
+    }
+    
+    .glass-card, .custom-table, .notif-banner {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(4px);
+    }
+
+    .section-header { 
+        border-bottom: 2px solid #e2e8f0; 
+        padding-bottom: 8px; 
+        margin-bottom: 20px; 
+        font-weight: 700; 
+        font-size: 18px; 
+        color: #1e293b; 
+    }
+    
+    .notif-banner { 
+        background-color: #f0f9ff; 
+        border-left: 5px solid var(--info-color); 
+        padding: 15px; 
+        border-radius: var(--radius-sm); 
+        margin-bottom: 15px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        box-shadow: var(--shadow-sm); 
+    }
+</style>
 </head>
 <body>
 
