@@ -396,7 +396,7 @@ $recent_found = $found_stmt->get_result();
                 <input type="text" id="filterLost" class="form-control form-control-sm w-auto" placeholder="🔍 Filter by Name, Location or Status..." style="border-radius: 20px; font-size: 13px;">
             </div>
             <div class="table-responsive mb-4">
-                <table class="custom-table">
+                <table id="lostTable" class="custom-table">
                     <!-- FIXED COLUMN ALIGNMENT -->
                     <colgroup>
                         <col style="width: 80px;">
@@ -453,7 +453,7 @@ $recent_found = $found_stmt->get_result();
                 <input type="text" id="filterFound" class="form-control form-control-sm w-auto" placeholder="🔍 Filter by Name, Location or Status..." style="border-radius: 20px; font-size: 13px;">
             </div>
             <div class="table-responsive">
-                <table class="custom-table">
+                <table id="foundTable" class="custom-table">
                     <!-- FIXED COLUMN ALIGNMENT -->
                     <colgroup>
                         <col style="width: 80px;">
@@ -526,23 +526,22 @@ $recent_found = $found_stmt->get_result();
         });
 
         // Table Filtering Logic
-        function setupFilter(inputId, tableSelector) {
+        function setupFilter(inputId, tableId) {
             const input = document.getElementById(inputId);
             if (!input) return;
             input.addEventListener('keyup', function() {
                 const filter = this.value.toLowerCase();
-                const rows = document.querySelectorAll(tableSelector + ' tbody tr.report-row');
+                const rows = document.querySelectorAll('#' + tableId + ' tbody tr.report-row');
                 
                 rows.forEach(row => {
-                    // Collect text from relevant columns (Item Name, Location, Status)
                     const text = row.innerText.toLowerCase();
                     row.style.display = text.includes(filter) ? '' : 'none';
                 });
             });
         }
         
-        setupFilter('filterLost', 'table:nth-of-type(1)'); // Lost table
-        setupFilter('filterFound', '.mt-5 + .table-responsive table'); // Found table
+        setupFilter('filterLost', 'lostTable');
+        setupFilter('filterFound', 'foundTable');
     </script>
     <script src="../../assets/js/assistant.js"></script>
 </body>
