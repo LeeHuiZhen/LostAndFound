@@ -7,7 +7,42 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
+$user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
 $user_name = $_SESSION["user_name"];
+$edit_mode = false;
+$item_id = 0;
+$item_name = '';
+$description = '';
+$location = '';
+$date = '';
+$photo_url = '';
+
+if (isset($_GET['edit']) && $_GET['edit'] == '1' && isset($_GET['id'])) {
+    $item_id = intval($_GET['id']);
+    $edit_mode = true;
+    $sql = "SELECT * FROM found_items WHERE item_id = ? AND user_id = ? LIMIT 1";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("ii", $item_id, $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows === 1) {
+            $row = $result->fetch_assoc();
+            $item_name = $row['item_name'];
+            $description = $row['description'];
+            $location = $row['location_found'];
+            $date = $row['date_found'];
+            $photo_url = $row['photo_url'];
+            if (in_array($row['status'], ['verified', 'returned'])) {
+                header("Location: ../syafiqah/matching/dashboard.php");
+                exit();
+            }
+        } else {
+            header("Location: ../syafiqah/matching/dashboard.php");
+            exit();
+        }
+        $stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,45 +98,47 @@ $user_name = $_SESSION["user_name"];
 
             <form action="save_report.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="type" value="found">
+                <input type="hidden" name="edit_mode" value="<?php echo $edit_mode ? '1' : '0'; ?>">
+                <input type="hidden" name="item_id" value="<?php echo $item_id; ?>">
 
                 <p class="form-section-title">Item Information</p>
 
                 <div class="form-group">
                     <label for="item_name">Item Name *</label>
-                    <input type="text" name="item_name" id="item_name" class="form-control" placeholder="e.g., UTM Matric Card, Samsung Galaxy Phone" required>
+                    <input type="text" name="item_name" id="item_name" class="form-control" placeholder="e.g., UTM Matric Card, Samsung Galaxy Phone" required value="<?php echo htmlspecialchars($item_name); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="description">Detailed Description *</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
-                        placeholder="Color, condition, brand, model. You may omit sensitive details (e.g., cash amount) to verify the owner's identity later..." required></textarea>
+                        placeholder="Color, condition, brand, model. You may omit sensitive details (e.g., cash amount) to verify the owner's identity later..." required><?php echo htmlspecialchars($description); ?></textarea>
                 </div>
 
                 <p class="form-section-title mt-4">Location & Date</p>
 
                 <div class="form-group">
                     <label for="location">Location Found *</label>
-                    <input type="text" name="location" id="location" class="form-control" placeholder="e.g., Library Level 2, Block N28 Concourse" required>
+                    <input type="text" name="location" id="location" class="form-control" placeholder="e.g., Library Level 2, Block N28 Concourse" required value="<?php echo htmlspecialchars($location); ?>">
                     <div id="map"></div>
                     <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">💡 Click or drag the marker on the map to auto-fill the location field.</small>
                 </div>
 
                 <div class="form-group">
                     <label for="date">Date Found *</label>
-                    <input type="date" name="date" id="date" class="form-control" required>
+                    <input type="date" name="date" id="date" class="form-control" required value="<?php echo htmlspecialchars($date); ?>">
                 </div>
 
                 <p class="form-section-title mt-4">Photo</p>
 
                 <div class="form-group mb-4">
-                    <label for="item_photo">Upload Item Photo *</label>
-                    <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" required>
-                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">📷 Upload a clear picture. Our AI system will analyze it to auto-tag the item. Max: 5MB.</small>
+                    <label for="item_photo">Upload Item Photo <?php echo $edit_mode ? '(leave blank to keep existing photo)' : '*'; ?></label>
+                    <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" <?php echo $edit_mode ? '' : 'required'; ?>>
+                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">📷 <?php echo $edit_mode ? 'Upload a new photo only if you want to replace the current one.' : 'Upload a clear picture. Our AI system will analyze it to auto-tag the item. Max: 5MB.'; ?></small>
                 </div>
 
                 <div class="d-flex gap-3">
                     <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-secondary flex-fill text-center">Cancel</a>
-                    <button type="submit" class="btn-custom btn-custom-success flex-fill">Submit Found Report →</button>
+                    <button type="submit" class="btn-custom btn-custom-success flex-fill"><?php echo $edit_mode ? 'Update Report →' : 'Submit Found Report →'; ?></button>
                 </div>
             </form>
         </div>

@@ -89,6 +89,13 @@ $stats_pending = $conn->query("SELECT COUNT(*) FROM claims WHERE status = 'pendi
 $stats_verified = $conn->query("SELECT COUNT(*) FROM claims WHERE status = 'verified'")->fetch_row()[0];
 $stats_returned = $conn->query("SELECT COUNT(*) FROM claims WHERE status = 'returned'")->fetch_row()[0];
 
+$filter_status = isset($_GET['status']) ? $_GET['status'] : 'all';
+$sort_order = isset($_GET['sort']) && in_array($_GET['sort'], ['asc', 'desc']) ? $_GET['sort'] : 'desc';
+$allowed_status = ['all', 'pending', 'verified', 'rejected', 'returned'];
+if (!in_array($filter_status, $allowed_status)) {
+    $filter_status = 'all';
+}
+
 // Fetch pending claims
 $pending_sql = "SELECT c.*, u.name as owner_name, u.email as owner_email, u.phone, 
                        li.item_name as lost_item, fi.item_name as found_item, fi.photo_url
@@ -108,9 +115,13 @@ $all_sql = "SELECT c.*, u.name as owner_name,
             JOIN users u ON c.owner_id = u.id
             JOIN matches m ON c.match_id = m.match_id
             JOIN lost_items li ON m.lost_item_id = li.item_id
-            JOIN found_items fi ON m.found_item_id = fi.item_id
-            ORDER BY c.created_at DESC
-            LIMIT 50";
+            JOIN found_items fi ON m.found_item_id = fi.item_id";
+
+if ($filter_status !== 'all') {
+    $all_sql .= " WHERE c.status = '" . $conn->real_escape_string($filter_status) . "'";
+}
+
+$all_sql .= " ORDER BY c.created_at " . ($sort_order === 'asc' ? 'ASC' : 'DESC') . " LIMIT 50";
 $all_result = $conn->query($all_sql);
 ?>
 
@@ -298,7 +309,31 @@ $all_result = $conn->query($all_sql);
 
         <!-- ===== CLAIMS HISTORY TABLE ===== -->
         <div class="glass-card">
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">📊 Historical Claims Log</h3>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">📊 Historical Claims Log</h3>
+                <form method="GET" class="d-flex flex-column flex-sm-row gap-2 align-items-start align-items-sm-center" style="margin-bottom: 0;">
+                    <label class="d-flex flex-column" style="font-size: 12px; color: var(--text-muted);">
+                        Status Filter
+                        <select name="status" class="form-select form-select-sm" style="min-width: 150px;">
+                            <option value="all" <?php echo $filter_status === 'all' ? 'selected' : ''; ?>>All Statuses</option>
+                            <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                            <option value="verified" <?php echo $filter_status === 'verified' ? 'selected' : ''; ?>>Verified</option>
+                            <option value="rejected" <?php echo $filter_status === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
+                            <option value="returned" <?php echo $filter_status === 'returned' ? 'selected' : ''; ?>>Returned</option>
+                        </select>
+                    </label>
+
+                    <label class="d-flex flex-column" style="font-size: 12px; color: var(--text-muted);">
+                        Sort by Date
+                        <select name="sort" class="form-select form-select-sm" style="min-width: 150px;">
+                            <option value="desc" <?php echo $sort_order === 'desc' ? 'selected' : ''; ?>>Newest First</option>
+                            <option value="asc" <?php echo $sort_order === 'asc' ? 'selected' : ''; ?>>Oldest First</option>
+                        </select>
+                    </label>
+
+                    <button type="submit" class="btn-custom btn-custom-primary btn-sm" style="margin-top: 22px;">Apply</button>
+                </form>
+            </div>
             
             <div class="table-responsive">
                 <table class="custom-table">

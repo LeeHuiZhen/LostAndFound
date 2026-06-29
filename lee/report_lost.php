@@ -8,6 +8,40 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_name = $_SESSION['user_name'];
+$edit_mode = false;
+$item_id = 0;
+$item_name = '';
+$description = '';
+$location = '';
+$date = '';
+$photo_url = '';
+
+if (isset($_GET['edit']) && $_GET['edit'] == '1' && isset($_GET['id'])) {
+    $item_id = intval($_GET['id']);
+    $edit_mode = true;
+    $sql = "SELECT * FROM lost_items WHERE item_id = ? AND user_id = ? LIMIT 1";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("ii", $item_id, $_SESSION['user_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows === 1) {
+            $row = $result->fetch_assoc();
+            $item_name = $row['item_name'];
+            $description = $row['description'];
+            $location = $row['location_lost'];
+            $date = $row['date_lost'];
+            $photo_url = $row['photo_url'];
+            if (in_array($row['status'], ['verified', 'returned'])) {
+                header("Location: ../syafiqah/matching/dashboard.php");
+                exit();
+            }
+        } else {
+            header("Location: ../syafiqah/matching/dashboard.php");
+            exit();
+        }
+        $stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,45 +93,47 @@ $user_name = $_SESSION['user_name'];
 
             <form action="save_report.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="type" value="lost">
+                <input type="hidden" name="edit_mode" value="<?php echo $edit_mode ? '1' : '0'; ?>">
+                <input type="hidden" name="item_id" value="<?php echo $item_id; ?>">
 
                 <p class="form-section-title">Item Information</p>
 
                 <div class="form-group">
                     <label for="item_name">Item Name *</label>
-                    <input type="text" name="item_name" id="item_name" class="form-control" placeholder="e.g., UTM Matric Card, Sony WH-1000XM4 Headphones" required>
+                    <input type="text" name="item_name" id="item_name" class="form-control" placeholder="e.g., UTM Matric Card, Sony WH-1000XM4 Headphones" required value="<?php echo htmlspecialchars($item_name); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="description">Detailed Description *</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
-                        placeholder="Describe the color, brand, model, unique stickers, keychains, scratches, or any identifying features..." required></textarea>
+                        placeholder="Describe the color, brand, model, unique stickers, keychains, scratches, or any identifying features..." required><?php echo htmlspecialchars($description); ?></textarea>
                 </div>
 
                 <p class="form-section-title mt-4">Location & Date</p>
 
                 <div class="form-group">
                     <label for="location">Location Lost *</label>
-                    <input type="text" name="location" id="location" class="form-control" placeholder="e.g., UTM Library, Block N28 Level 3" required>
+                    <input type="text" name="location" id="location" class="form-control" placeholder="e.g., UTM Library, Block N28 Level 3" required value="<?php echo htmlspecialchars($location); ?>">
                     <div id="map"></div>
                     <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">💡 Click or drag the marker to auto-fill the location field from the map.</small>
                 </div>
 
                 <div class="form-group">
                     <label for="date">Date Lost *</label>
-                    <input type="date" name="date" id="date" class="form-control" required>
+                    <input type="date" name="date" id="date" class="form-control" required value="<?php echo htmlspecialchars($date); ?>">
                 </div>
 
                 <p class="form-section-title mt-4">Photo</p>
 
                 <div class="form-group mb-4">
-                    <label for="item_photo">Upload Item Photo *</label>
-                    <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" required>
-                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">📷 Provide a clear photo of the item or a similar reference image. Max: 5MB.</small>
+                    <label for="item_photo">Upload Item Photo <?php echo $edit_mode ? '(leave blank to keep existing photo)' : '*'; ?></label>
+                    <input type="file" name="item_photo" id="item_photo" class="form-control" accept="image/*" <?php echo $edit_mode ? '' : 'required'; ?>>
+                    <small class="text-muted" style="font-size: 11px; display: block; margin-top: 6px;">📷 <?php echo $edit_mode ? 'Upload a new photo only if you want to replace the current one.' : 'Provide a clear photo of the item or a similar reference image. Max: 5MB.'; ?></small>
                 </div>
 
                 <div class="d-flex gap-3">
                     <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-secondary flex-fill text-center">Cancel</a>
-                    <button type="submit" class="btn-custom btn-custom-primary flex-fill">Submit Report →</button>
+                    <button type="submit" class="btn-custom btn-custom-primary flex-fill"><?php echo $edit_mode ? 'Update Report →' : 'Submit Report →'; ?></button>
                 </div>
             </form>
         </div>

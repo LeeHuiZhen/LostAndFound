@@ -18,33 +18,61 @@ $location = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $user_id = $_SESSION['user_id'];
+    $item_id = isset($_POST['item_id']) ? intval($_POST['item_id']) : 0;
+    $edit_mode = isset($_POST['edit_mode']) && $_POST['edit_mode'] === '1' && $item_id > 0;
     $item_name = trim($_POST['item_name']);
     $description = trim($_POST['description']);
     $location = trim($_POST['location']);
     $date = $_POST['date'];
     $type = $_POST['type'];
 
-    $photo_url = handleUpload($_FILES['item_photo']);
+    $photo_url = null;
+    if (!empty($_FILES['item_photo']['name'])) {
+        $photo_url = handleUpload($_FILES['item_photo']);
+    }
 
-    if ($photo_url === false) {
-        $error_msg = "Failed to upload item photo. Please check the file size and format.";
+    if ($edit_mode && $photo_url === false) {
+        $error_msg = "Failed to upload updated item photo. Please check the file size and format.";
     } else {
-        // Pass the physical path of the uploaded file for Google Vision analysis (fallback to local if no API key)
-        $tags = getVisionTags($item_name . " " . $description, "../" . $photo_url);
+        // If editing and no new photo was uploaded, preserve the existing file path.
         $table = ($type == 'lost') ? 'lost_items' : 'found_items';
         $col_loc = ($type == 'lost') ? 'location_lost' : 'location_found';
         $col_date = ($type == 'lost') ? 'date_lost' : 'date_found';
-        
-        $sql = "INSERT INTO $table (user_id, item_name, description, $col_loc, $col_date, photo_url, tags, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
-        
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("issssss", $user_id, $item_name, $description, $location, $date, $photo_url, $tags);
-            
-            if ($stmt->execute()) {
-                $success = true;
-                $new_item_id = $conn->insert_id;
-                
-                // ===== REAL-TIME AUTO-MATCHING ENGINE & NOTIFICATIONS =====
+
+        if ($edit_mode) {
+            if ($photo_url === null) {
+                $photo_query = "SELECT photo_url FROM $table WHERE item_id = ? AND user_id = ?";
+                if ($photo_stmt = $conn->prepare($photo_query)) {
+                    $photo_stmt->bind_param("ii", $item_id, $user_id);
+                    $photo_stmt->execute();
+                    $photo_stmt->bind_result($photo_url);
+                    $photo_stmt->fetch();
+                    $photo_stmt->close();
+                }
+            }
+            $tags = getVisionTags($item_name . " " . $description, $photo_url ? "../" . $photo_url : null);
+            $sql = "UPDATE $table SET item_name = ?, description = ?, $col_loc = ?, $col_date = ?, photo_url = ?, tags = ? WHERE item_id = ? AND user_id = ?";
+        } else {
+            if ($photo_url === null) {
+                $error_msg = "Please upload an item photo.";
+            }
+            $tags = getVisionTags($item_name . " " . $description, $photo_url ? "../" . $photo_url : null);
+            $sql = "INSERT INTO $table (user_id, item_name, description, $col_loc, $col_date, photo_url, tags, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
+        }
+
+        if (empty($error_msg)) {
+            if ($stmt = $conn->prepare($sql)) {
+                if ($edit_mode) {
+                    $stmt->bind_param("ssssssii", $item_name, $description, $location, $date, $photo_url, $tags, $item_id, $user_id);
+                } else {
+                    $stmt->bind_param("issssss", $user_id, $item_name, $description, $location, $date, $photo_url, $tags);
+                }
+
+                if ($stmt->execute()) {
+                    $success = true;
+                    $new_item_id = $edit_mode ? $item_id : $conn->insert_id;
+
+                    // ===== REAL-TIME AUTO-MATCHING ENGINE & NOTIFICATIONS =====
                 // 1. Fetch opposite items to check for matches instantly
                 $opposite_table = ($type == 'lost') ? 'found_items' : 'lost_items';
                 $opp_col_loc = ($type == 'lost') ? 'location_found' : 'location_lost';

@@ -173,7 +173,23 @@ $lost_stmt = $conn->prepare($lost_reports_sql);
 $lost_stmt->bind_param("i", $user_id);
 $lost_stmt->execute();
 $recent_lost = $lost_stmt->get_result();
+
+// ===== 6. FETCH RECENT FOUND REPORTS =====
+$found_reports_sql = "
+SELECT fi.*, c.status AS claim_status
+FROM found_items fi
+LEFT JOIN matches m ON fi.item_id = m.found_item_id
+LEFT JOIN claims c ON m.match_id = c.match_id AND c.status = 'verified'
+WHERE fi.user_id = ?
+ORDER BY fi.date_found DESC, fi.created_at DESC
+LIMIT 5
+";
+$found_stmt = $conn->prepare($found_reports_sql);
+$found_stmt->bind_param("i", $user_id);
+$found_stmt->execute();
+$recent_found = $found_stmt->get_result();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -196,6 +212,16 @@ $recent_lost = $lost_stmt->get_result();
     .glass-card, .custom-table, .notif-banner {
         background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(4px);
+    }
+
+    .report-actions {
+        opacity: 0;
+        transition: opacity 0.18s ease;
+    }
+
+    .report-row:hover .report-actions,
+    .report-row.actions-visible .report-actions {
+        opacity: 1;
     }
 
     .section-header { 
@@ -357,50 +383,128 @@ $recent_lost = $lost_stmt->get_result();
         <div class="glass-card">
             <h3 class="section-header">📋 Recent Reports Log</h3>
             
-            <?php if ($recent_lost && $recent_lost->num_rows > 0): ?>
-                <div class="table-responsive bg-white">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Report ID</th>
-                                <th>Item Name</th>
-                                <th>Location Lost</th>
-                                <th>Date Lost</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div class="report-table-wrapper mb-4">
+                <table class="custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Lost Report ID</th>
+                            <th>Item Name</th>
+                            <th>Location Lost</th>
+                            <th>Date Lost</th>
+                            <th>Status</th>
+                            <th class="actions-cell text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($recent_lost && $recent_lost->num_rows > 0): ?>
                             <?php while($row = $recent_lost->fetch_assoc()): ?>
-                                <tr>
+                                <?php
+                                $status = $row['status'];
+                                $claim_status = isset($row['claim_status']) ? $row['claim_status'] : '';
+                                $display_status = 'Pending';
+                                $status_badge = 'status-badge-pending';
+                                if ($status == 'returned') {
+                                    $display_status = 'Returned';
+                                    $status_badge = 'status-badge-returned';
+                                } elseif ($claim_status == 'verified') {
+                                    $display_status = 'Verified';
+                                    $status_badge = 'status-badge-verified';
+                                } elseif ($status == 'claimed') {
+                                    $display_status = 'Claimed';
+                                    $status_badge = 'status-badge-claimed';
+                                }
+                                $can_edit = ($display_status !== 'Verified' && $display_status !== 'Returned');
+                                ?>
+                                <tr class="report-row">
                                     <td><strong>#<?php echo $row['item_id']; ?></strong></td>
                                     <td><span class="fw-bold"><?php echo htmlspecialchars($row['item_name']); ?></span></td>
                                     <td><?php echo htmlspecialchars($row['location_lost']); ?></td>
                                     <td><?php echo date('d M Y', strtotime($row['date_lost'])); ?></td>
-                                    <td>
-                                        <?php 
-                                        $status = $row['status'];
-                                        $claim_status = isset($row['claim_status']) ? $row['claim_status'] : '';
-                                        if ($status == 'returned') {
-                                            echo '<span class="status-badge status-badge-returned">🎉 Returned</span>';
-                                        } elseif ($claim_status == 'verified') {
-                                            echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
-                                        } elseif ($status == 'claimed') {
-                                            echo '<span class="status-badge status-badge-claimed">📋 Claimed</span>';
-                                        } else {
-                                            echo '<span class="status-badge status-badge-pending">⏳ Pending</span>';
-                                        }
-                                        ?>
+                                    <td><span class="status-badge <?php echo $status_badge; ?>"><?php echo $display_status; ?></span></td>
+                                    <td class="actions-cell">
+                                        <div class="report-actions">
+                                            <?php if ($can_edit): ?>
+                                                <a href="../../lee/report_lost.php?edit=1&id=<?php echo $row['item_id']; ?>" class="action-icon" title="Edit Lost Report">✏️</a>
+                                            <?php endif; ?>
+                                            <form action="../../lee/delete_report.php" method="POST" style="display:inline-block;">
+                                                <input type="hidden" name="type" value="lost">
+                                                <input type="hidden" name="id" value="<?php echo $row['item_id']; ?>">
+                                                <button type="submit" class="action-icon" title="Delete Lost Report" onclick="return confirm('Are you sure you want to delete this report? Once deleted it will be lost forever');">🗑️</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="text-center py-4 text-muted bg-light border rounded">
-                    <p class="m-0" style="font-size: 13px;">No lost reports found. Use the shortcuts above to file a report.</p>
-                </div>
-            <?php endif; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No lost reports found. Use the shortcuts above to file a report.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <h5 class="mb-3" style="font-size: 16px; font-weight: 700;">🟢 Found Items</h5>
+            <div class="report-table-wrapper">
+                <table class="custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Found Report ID</th>
+                            <th>Item Name</th>
+                            <th>Location Found</th>
+                            <th>Date Found</th>
+                            <th>Status</th>
+                            <th class="actions-cell text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($recent_found && $recent_found->num_rows > 0): ?>
+                            <?php while($row = $recent_found->fetch_assoc()): ?>
+                                <?php
+                                $status = $row['status'];
+                                $claim_status = isset($row['claim_status']) ? $row['claim_status'] : '';
+                                $display_status = 'Pending';
+                                $status_badge = 'status-badge-pending';
+                                if ($status == 'returned') {
+                                    $display_status = 'Returned';
+                                    $status_badge = 'status-badge-returned';
+                                } elseif ($claim_status == 'verified') {
+                                    $display_status = 'Verified';
+                                    $status_badge = 'status-badge-verified';
+                                } elseif ($status == 'claimed') {
+                                    $display_status = 'Claimed';
+                                    $status_badge = 'status-badge-claimed';
+                                }
+                                $can_edit = ($display_status !== 'Verified' && $display_status !== 'Returned');
+                                ?>
+                                <tr class="report-row">
+                                    <td><strong>#<?php echo $row['item_id']; ?></strong></td>
+                                    <td><span class="fw-bold"><?php echo htmlspecialchars($row['item_name']); ?></span></td>
+                                    <td><?php echo htmlspecialchars($row['location_found']); ?></td>
+                                    <td><?php echo date('d M Y', strtotime($row['date_found'])); ?></td>
+                                    <td><span class="status-badge <?php echo $status_badge; ?>"><?php echo $display_status; ?></span></td>
+                                    <td class="actions-cell">
+                                        <div class="report-actions">
+                                            <?php if ($can_edit): ?>
+                                                <a href="../../lee/report_found.php?edit=1&id=<?php echo $row['item_id']; ?>" class="action-icon" title="Edit Found Report">✏️</a>
+                                            <?php endif; ?>
+                                            <form action="../../lee/delete_report.php" method="POST" style="display:inline-block;">
+                                                <input type="hidden" name="type" value="found">
+                                                <input type="hidden" name="id" value="<?php echo $row['item_id']; ?>">
+                                                <button type="submit" class="action-icon" title="Delete Found Report" onclick="return confirm('Are you sure you want to delete this report? Once deleted it will be lost forever');">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No found reports found. Use the shortcuts above to file a report.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="text-center mt-5">
@@ -416,6 +520,16 @@ $recent_lost = $lost_stmt->get_result();
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.report-row').forEach(row => {
+            row.addEventListener('click', () => {
+                row.classList.toggle('actions-visible');
+            });
+        });
+        document.querySelectorAll('.report-actions').forEach(actions => {
+            actions.addEventListener('click', event => event.stopPropagation());
+        });
+    </script>
     <!-- Conversational Chatbot Widget (Botpress Mockup) -->
     <script src="../../assets/js/assistant.js"></script>
 </body>
