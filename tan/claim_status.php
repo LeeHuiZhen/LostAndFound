@@ -30,7 +30,12 @@ $result = $conn->query($sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        body { background: var(--light-bg); }
+        body {
+            background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)),
+                        url('../LostAndFound_found.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
         .claim-row-card {
             background: white;
             border: 1px solid var(--border-color);

@@ -47,7 +47,10 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
         body {
-            background-color: var(--light-bg);
+            background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)),
+                        url('../../LostAndFound_found.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
         }
         .match-card {
             background: white;

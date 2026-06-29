@@ -19,7 +19,12 @@ $user_name = $_SESSION['user_name'];
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { background: var(--light-bg); }
+        body {
+            background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)),
+                        url('../LostAndFound_dashboard.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
         #map { height: 230px; border-radius: var(--radius-sm); border: 1.5px solid #cbd5e1; z-index: 1; margin-top: 10px; }
         .form-section-title {
             font-size: 12px;
