@@ -81,7 +81,12 @@ $match = $result->fetch_assoc();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        body { background: var(--light-bg); }
+        body {
+            background: linear-gradient(rgba(2, 6, 23, 0.45), rgba(15, 23, 42, 0.55)),
+                        url('../LostAndFound_found.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
         .match-preview {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
