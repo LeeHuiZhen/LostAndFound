@@ -20,7 +20,7 @@ $user_name = $_SESSION['user_name'];
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body {
-            background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)),
+            background: linear-gradient(rgba(2, 6, 23, 0.45), rgba(15, 23, 42, 0.55)),
                         url('../LostAndFound_dashboard.png') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;

@@ -39,7 +39,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
         body {
-            background: linear-gradient(rgba(15, 23, 42, 0.05), rgba(15, 23, 42, 0.08)),
+            background: linear-gradient(rgba(2, 6, 23, 0.45), rgba(15, 23, 42, 0.55)),
                         url('../../LostAndFound_found.png') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
