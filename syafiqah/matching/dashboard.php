@@ -393,7 +393,7 @@ $recent_found = $found_stmt->get_result();
         <div class="glass-card" style="padding: 28px;">
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3" style="border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
                 <p class="section-title mb-0" style="border-bottom: none; padding-bottom: 0;">🔴 Recent Lost Reports</p>
-                <input type="text" id="filterLost" class="form-control form-control-sm" placeholder="🔍 Filter reports..." style="border-radius: 20px; font-size: 13px; width: 250px;">
+                <input type="text" id="filterLost" class="form-control form-control-sm" placeholder="🔍 Filter by Name, Location or Status..." style="border-radius: 20px; font-size: 13px; width: 250px;">
             </div>
             <div class="table-responsive mb-4">
                 <table id="lostTable" class="custom-table">
@@ -450,7 +450,7 @@ $recent_found = $found_stmt->get_result();
 
             <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3" style="border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
                 <p class="section-title mb-0" style="border-bottom: none; padding-bottom: 0;">🟢 Recent Found Reports</p>
-                <input type="text" id="filterFound" class="form-control form-control-sm" placeholder="🔍 Filter reports..." style="border-radius: 20px; font-size: 13px; width: 250px;">
+                <input type="text" id="filterFound" class="form-control form-control-sm" placeholder="🔍 Filter by Name, Location or Status..." style="border-radius: 20px; font-size: 13px; width: 250px;">
             </div>
             <div class="table-responsive">
                 <table id="foundTable" class="custom-table">
