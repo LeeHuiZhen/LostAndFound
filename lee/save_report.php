@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     $email_log .= "- Matching Found Item: " . (($type == 'found') ? $item_name : $opp_item['item_name']) . "\n";
                                     $email_log .= "- Reported Location: " . (($type == 'found') ? $location : $opp_item[$opp_col_loc]) . "\n";
                                     $email_log .= "- Matching Confidence: " . $score . "%\n\n";
-                                    $email_log .= "Please sign in to your Student Workspace (http://localhost/syafiqah/matching/dashboard.php),\n";
+                                    $email_log .= "Please sign in to your My Workspace (http://localhost/syafiqah/matching/dashboard.php),\n";
                                     $email_log .= "go to your 'Active Match Alerts' or 'My Portal Modules > View Matches' section,\n";
                                     $email_log .= "and submit your proof of ownership claim to recover your item.\n\n";
                                     $email_log .= "Best regards,\n";
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div class="d-flex flex-column gap-2">
                 <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-success py-2">
-                    📋 Go to Student Workspace
+                    📋 Go to My Workspace
                 </a>
             </div>
         <?php else: ?>
