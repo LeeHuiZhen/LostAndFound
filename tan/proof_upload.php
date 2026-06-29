@@ -1,6 +1,6 @@
 <?php
-include '../config.php';
 session_start();
+include '../config.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../tey/login.php");
@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'] ?? 'User';
 
 // If accessed directly without POST, redirect to claim status
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -89,75 +90,95 @@ if (move_uploaded_file($_FILES["proof_file"]["tmp_name"], $target_file)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claim Status - Lost & Found Assistant</title>
-    <!-- Bootstrap 5 -->
+    <title>Claim Status – UTM Lost & Found</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom Style -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=3">
     <style>
         body {
-            background-color: var(--light-bg);
+            background: linear-gradient(rgba(15,23,42,0.65), rgba(15,23,42,0.8)),
+                        url('../LostAndFound_found.png') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            color: #ffffff; /* Contrast text on dark bg */
         }
         .status-card {
             max-width: 500px;
             width: 100%;
+            background: rgba(255,255,255,0.96) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #1e293b; /* Dark text inside card for readability */
         }
     </style>
 </head>
 <body>
 
-    <div class="status-card glass-card text-center">
-        <?php if ($success): ?>
-            <div class="mb-4">
-                <span style="font-size: 50px;">✅</span>
-                <h2 class="mt-2 text-success" style="border-bottom: none; padding-bottom: 0;">Claim Submitted!</h2>
-                <p class="text-muted">Your claim has been successfully recorded.</p>
-            </div>
-            
-            <div class="alert alert-success alert-custom alert-custom-success py-3 px-4 mb-4 text-start" style="font-size: 13px;">
-                <strong>Claim ID:</strong> #<?php echo $claim_id; ?><br>
-                <strong>Match ID:</strong> #<?php echo $match_id; ?><br>
-                <strong>Status:</strong> <span class="badge bg-secondary">Pending Admin Review</span>
-            </div>
+    <!-- ===== NAVBAR ===== -->
+    <nav class="custom-navbar">
+        <a href="../index.php" class="brand">🔍 UTM Lost & Found</a>
+        <div class="nav-links">
+            <a href="../syafiqah/matching/dashboard.php">📊 Dashboard</a>
+            <a href="../syafiqah/matching/display_match.php">🎯 Matches</a>
+            <a href="claim_status.php">📋 My Claims</a>
+            <span>Hi, <strong><?php echo htmlspecialchars($user_name); ?></strong></span>
+            <a href="../tey/logout.php" class="btn-custom btn-custom-outline" style="padding: 7px 16px; font-size: 12px;">Logout</a>
+        </div>
+    </nav>
 
-            <p class="mb-4" style="font-size: 14px; color: var(--text-muted);">
-                Our campus security administrators will review your proof of ownership. You can check the status at any time.
-            </p>
+    <div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 180px); padding: 40px 20px;">
+        <div class="status-card glass-card text-center" style="padding: 32px;">
+            <?php if ($success): ?>
+                <div class="mb-4">
+                    <span style="font-size: 56px;">✅</span>
+                    <h2 class="mt-2 text-success" style="border-bottom: none; padding-bottom: 0; font-size: 22px; font-weight: 800;">Claim Submitted!</h2>
+                    <p class="text-muted" style="font-size: 14px;">Your claim has been successfully recorded.</p>
+                </div>
+                
+                <div class="alert-custom alert-custom-success py-3 px-4 mb-4 text-start" style="font-size: 13px;">
+                    <strong>Claim ID:</strong> #<?php echo $claim_id; ?><br>
+                    <strong>Match ID:</strong> #<?php echo $match_id; ?><br>
+                    <strong>Status:</strong> <span class="badge bg-secondary">Pending Admin Review</span>
+                </div>
 
-            <div class="d-flex flex-column gap-2">
-                <a href="claim_status.php" class="btn-custom btn-custom-success py-2">
-                    📋 View Claim Status
-                </a>
-                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">
-                    🏠 Back to Workspace
-                </a>
-            </div>
-        <?php else: ?>
-            <div class="mb-4">
-                <span style="font-size: 50px;">❌</span>
-                <h2 class="mt-2 text-danger" style="border-bottom: none; padding-bottom: 0;">Submission Failed</h2>
-                <p class="text-muted">An error occurred while uploading your proof document.</p>
-            </div>
-            
-            <div class="alert alert-danger alert-custom alert-custom-danger py-3 px-4 mb-4 text-start" style="font-size: 13px;">
-                <?php echo htmlspecialchars($error_msg); ?>
-            </div>
+                <p class="mb-4" style="font-size: 14px; color: #64748b; line-height: 1.5;">
+                    Our campus security administrators will review your proof of ownership. You can check the status at any time.
+                </p>
 
-            <div class="d-flex flex-column gap-2">
-                <a href="javascript:history.back()" class="btn-custom btn-custom-primary py-2">
-                    ⬅ Go Back and Try Again
-                </a>
-                <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2">
-                    🏠 Back to Dashboard
-                </a>
-            </div>
-        <?php endif; ?>
+                <div class="d-flex flex-column gap-2">
+                    <a href="claim_status.php" class="btn-custom btn-custom-success py-2" style="text-decoration: none;">
+                        📋 View Claim Status
+                    </a>
+                    <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2" style="text-decoration: none;">
+                        🏠 Back to Workspace
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="mb-4">
+                    <span style="font-size: 56px;">❌</span>
+                    <h2 class="mt-2 text-danger" style="border-bottom: none; padding-bottom: 0; font-size: 22px; font-weight: 800;">Submission Failed</h2>
+                    <p class="text-muted" style="font-size: 14px;">An error occurred while uploading your proof document.</p>
+                </div>
+                
+                <div class="alert-custom alert-custom-danger py-3 px-4 mb-4 text-start" style="font-size: 13px;">
+                    <?php echo htmlspecialchars($error_msg); ?>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <a href="javascript:history.back()" class="btn-custom btn-custom-primary py-2" style="text-decoration: none;">
+                        ⬅ Go Back and Try Again
+                    </a>
+                    <a href="../syafiqah/matching/dashboard.php" class="btn-custom btn-custom-outline py-2" style="text-decoration: none;">
+                        🏠 Back to Dashboard
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
+    <footer class="custom-footer">
+        <p>🔍 Lost and Found Assistant &copy; 2026 | UTM Web Programming Project</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
