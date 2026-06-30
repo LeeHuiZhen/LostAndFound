@@ -14,15 +14,16 @@ $user_name = $_SESSION['user_name'];
 $stmt = $conn->prepare("
     SELECT c.*, m.match_id,
            li.item_name AS lost_item, li.description AS lost_desc, li.photo_url AS lost_photo_url,
-           fi.item_name AS found_item, fi.description AS found_desc, fi.photo_url AS found_photo_url
+           fi.item_name AS found_item, fi.description AS found_desc, fi.photo_url AS found_photo_url,
+           fi.user_id AS finder_id
     FROM claims c
     JOIN matches m     ON c.match_id = m.match_id
     JOIN lost_items li ON m.lost_item_id = li.item_id
     JOIN found_items fi ON m.found_item_id = fi.item_id
-    WHERE c.owner_id = ?
+    WHERE c.owner_id = ? OR fi.user_id = ?
     ORDER BY c.created_at DESC
 ");
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $total  = $result->num_rows;
@@ -219,6 +220,12 @@ $total  = $result->num_rows;
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
                             <strong style="font-size: 15px;">Claim #<?php echo $row['claim_id']; ?></strong>
+                            <?php if ($row['owner_id'] == $user_id): ?>
+                                <span style="background: #4f46e5; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 4px;">MY CLAIM</span>
+                            <?php else: ?>
+                                <span style="background: #0ea5e9; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 4px;">CLAIM ON MY FOUND ITEM</span>
+                            <?php endif; ?>
+                            
                             <?php
                             if ($status === 'pending')  echo '<span class="status-badge status-badge-pending">⏳ Under Review</span>';
                             elseif ($status === 'verified') echo '<span class="status-badge status-badge-verified">✅ Verified</span>';
