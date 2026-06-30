@@ -85,8 +85,8 @@ if ($match_id == 0) {
 }
 
 // Fetch the match details
-$sql = "SELECT m.*, li.item_name as lost_item, li.description as lost_desc, 
-               fi.item_name as found_item, fi.description as found_desc, fi.photo_url,
+$sql = "SELECT m.*, li.item_name as lost_item, li.description as lost_desc, li.photo_url as lost_photo_url,
+               fi.item_name as found_item, fi.description as found_desc, fi.photo_url as found_photo_url,
                fi.location_found, fi.date_found
         FROM matches m 
         JOIN lost_items li ON m.lost_item_id = li.item_id
@@ -234,6 +234,9 @@ $match = $result->fetch_assoc();
                         <p class="m-0" style="font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🔴 Your Lost Report</p>
                         <p class="m-0 fw-bold" style="font-size: 15px; color: #1e293b;"><?php echo htmlspecialchars($match['lost_item']); ?></p>
                         <p class="m-0 text-muted mt-2" style="font-size: 12px; line-height: 1.5;"><?php echo htmlspecialchars($match['lost_desc']); ?></p>
+                        <?php if ($match['lost_photo_url']): ?>
+                            <img src="../<?php echo htmlspecialchars($match['lost_photo_url']); ?>" alt="Lost Item Photo" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -244,8 +247,8 @@ $match = $result->fetch_assoc();
                         <p class="m-0" style="font-size: 11px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🟢 Matched Found Item</p>
                         <p class="m-0 fw-bold" style="font-size: 15px; color: #1e293b;"><?php echo htmlspecialchars($match['found_item']); ?></p>
                         <p class="m-0 text-muted mt-2" style="font-size: 12px; line-height: 1.5;"><?php echo htmlspecialchars($match['found_desc']); ?></p>
-                        <?php if ($match['photo_url']): ?>
-                            <img src="../<?php echo htmlspecialchars($match['photo_url']); ?>" alt="Item Photo" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                        <?php if ($match['found_photo_url']): ?>
+                            <img src="../<?php echo htmlspecialchars($match['found_photo_url']); ?>" alt="Found Item Photo" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 10px; border: 1px solid #e2e8f0;">
                         <?php endif; ?>
                     </div>
                     <div class="score-badge"><?php echo $match['match_score']; ?>% Match Score</div>
