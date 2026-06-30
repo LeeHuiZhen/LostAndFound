@@ -13,8 +13,8 @@ $user_name = $_SESSION['user_name'];
 // FIXED: Use prepared statement instead of raw $user_id interpolation
 $stmt = $conn->prepare("
     SELECT c.*, m.match_id,
-           li.item_name AS lost_item, li.description AS lost_desc,
-           fi.item_name AS found_item, fi.description AS found_desc, fi.photo_url
+           li.item_name AS lost_item, li.description AS lost_desc, li.photo_url AS lost_photo_url,
+           fi.item_name AS found_item, fi.description AS found_desc, fi.photo_url AS found_photo_url
     FROM claims c
     JOIN matches m     ON c.match_id = m.match_id
     JOIN lost_items li ON m.lost_item_id = li.item_id
@@ -203,11 +203,17 @@ $total  = $result->num_rows;
                 <!-- CLAIM DETAILS -->
                 <div class="d-flex align-items-start gap-3">
                     <!-- Thumbnail -->
-                    <?php if ($row['photo_url']): ?>
-                        <img src="../<?php echo htmlspecialchars($row['photo_url']); ?>" alt="Item photo" class="item-thumb">
-                    <?php else: ?>
-                        <div class="item-thumb-placeholder">📦</div>
-                    <?php endif; ?>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <?php if ($row['lost_photo_url']): ?>
+                            <img src="../<?php echo htmlspecialchars($row['lost_photo_url']); ?>" alt="Lost photo" class="item-thumb" title="Lost Item Photo">
+                        <?php endif; ?>
+                        <?php if ($row['found_photo_url']): ?>
+                            <img src="../<?php echo htmlspecialchars($row['found_photo_url']); ?>" alt="Found photo" class="item-thumb" title="Found Item Photo">
+                        <?php endif; ?>
+                        <?php if (!$row['lost_photo_url'] && !$row['found_photo_url']): ?>
+                            <div class="item-thumb-placeholder">📦</div>
+                        <?php endif; ?>
+                    </div>
 
                     <!-- Info -->
                     <div class="flex-grow-1">
